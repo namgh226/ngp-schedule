@@ -1,0 +1,25 @@
+{
+  "name": "NGP근무달력",
+  "short_name": "근무달력",
+  "description": "NGP 팀 근무 스케줄 관리",
+  "start_url": "/ngp-schedule/",
+  "scope": "/ngp-schedule/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2b6cb0",
+  "theme_color": "#2b6cb0",
+  "icons": [
+    {
+      "src": "/ngp-schedule/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/ngp-schedule/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
