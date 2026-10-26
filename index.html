@@ -4,13 +4,13 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>근무달력</title>
-  <link rel="manifest" href="/ngp-efocke/manifest.json">
+  <link rel="manifest" href="/ngp-schedule/manifest.json">
   <meta name="theme-color" content="#2b6cb0">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="근무달력">
-  <link rel="apple-touch-icon" href="/ngp-efocke/icon-192.png">
+  <link rel="apple-touch-icon" href="/ngp-schedule/icon-192.png">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <style>
@@ -1273,7 +1273,7 @@ function resetDay(){ delete overrides[modalKey]; closeModal(); saveToFirebase();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('/ngp-efocke/sw.js')
+    navigator.serviceWorker.register('/ngp-schedule/sw.js')
       .then(()=>console.log('SW registered'))
       .catch(err=>console.log('SW error:',err));
   });
