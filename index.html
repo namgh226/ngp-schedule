@@ -19,7 +19,6 @@
     header{background:linear-gradient(135deg,#2b6cb0,#2c7a7b);color:#fff;padding:18px 24px;text-align:center;}
     header h1{font-size:1.5rem;}
     header p{font-size:0.88rem;opacity:.85;margin-top:4px;}
-    /* ── PIN 오버레이 ── */
     .pin-overlay{display:flex;position:fixed;inset:0;
       background:linear-gradient(135deg,#2b6cb0,#2c7a7b);
       z-index:999;align-items:center;justify-content:center;}
@@ -29,15 +28,12 @@
       box-shadow:0 8px 40px rgba(0,0,0,.3);}
     .pin-box h2{font-size:1.2rem;color:#2b6cb0;margin-bottom:6px;}
     .pin-box p{font-size:.85rem;color:#718096;margin-bottom:20px;}
-    /* ── 팀 선택 버튼 ── */
     .team-select-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
     .team-btn{padding:12px;border-radius:10px;border:2px solid #e2e8f0;
       cursor:pointer;font-size:.95rem;font-weight:600;
-      background:#f7fafc;transition:all .15s;color:#2d3748;text-align:left;}
+      background:#f7fafc;transition:all .15s;color:#2d3748;text-align:center;}
     .team-btn:hover{border-color:#2b6cb0;background:#ebf8ff;}
     .team-btn.selected{border-color:#2b6cb0;background:#ebf8ff;color:#2b6cb0;}
-    .team-btn .team-icon{margin-right:8px;}
-    /* ── PIN 입력 ── */
     .pin-input-section{display:none;}
     .pin-input-section.show{display:block;}
     .pin-input-wrap{margin-bottom:16px;}
@@ -64,7 +60,6 @@
       background:#f7fafc;cursor:pointer;font-size:.82rem;color:#718096;
       margin-bottom:12px;transition:all .15s;}
     .back-btn:hover{background:#edf2f7;}
-    /* ── 기타 공통 ── */
     .user-bar{background:#2c5282;color:#fff;padding:8px 20px;
       display:flex;align-items:center;justify-content:space-between;font-size:.82rem;}
     .user-bar.view-only{background:#4a5568;}
@@ -340,29 +335,19 @@
 </head>
 <body>
 
-<!-- ★ PIN 오버레이 (팀 선택 + PIN 입력) -->
+<!-- PIN 오버레이 -->
 <div class="pin-overlay" id="pinOverlay">
   <div class="pin-box">
     <h2>📅 근무달력</h2>
     <p>팀을 선택하세요</p>
-
-    <!-- 팀 선택 -->
+    <!-- ★ 팀 선택 (이모지 제거, 포케로 변경, 가운데 정렬) -->
     <div class="team-select-wrap" id="teamSelectWrap">
-      <button class="team-btn" onclick="selectTeam('packaging_elec','포장전자')">
-        <span class="team-icon">🏭</span>포장전자
-      </button>
-      <button class="team-btn" onclick="selectTeam('packaging_mech','포장기계')">
-        <span class="team-icon">⚙️</span>포장기계
-      </button>
-      <button class="team-btn" onclick="selectTeam('hauni_elec','하우니전자')">
-        <span class="team-icon">🔌</span>하우니전자
-      </button>
-      <button class="team-btn" onclick="selectTeam('hauni_mech','하우니기계')">
-        <span class="team-icon">🔧</span>하우니기계
-      </button>
+      <button class="team-btn" onclick="selectTeam('packaging_elec','포케전자')">포케전자</button>
+      <button class="team-btn" onclick="selectTeam('packaging_mech','포케기계')">포케기계</button>
+      <button class="team-btn" onclick="selectTeam('hauni_elec','하우니전자')">하우니전자</button>
+      <button class="team-btn" onclick="selectTeam('hauni_mech','하우니기계')">하우니기계</button>
     </div>
-
-    <!-- PIN 입력 (팀 선택 후 표시) -->
+    <!-- PIN 입력 -->
     <div class="pin-input-section" id="pinInputSection">
       <button class="back-btn" onclick="backToTeamSelect()">← 팀 선택으로 돌아가기</button>
       <div class="pin-input-wrap">
@@ -562,9 +547,6 @@
 <div class="edit-locked" id="editLocked">🔒 관리자 로그인 후 수정 가능합니다</div>
 
 <script>
-// ══════════════════════════════════════
-//  Firebase
-// ══════════════════════════════════════
 const firebaseConfig = {
   apiKey: "AIzaSyCFPFlJz-0uwHyvM9-suzF3OSEzxceXLaA",
   authDomain: "ngp-elec.firebaseapp.com",
@@ -577,94 +559,71 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ══════════════════════════════════════
-//  ★ 팀 설정
-// ══════════════════════════════════════
+// ★ 팀 설정 (이모지 제거, 포케로 변경)
 const TEAMS = {
-  packaging_elec: { name:'포장전자', icon:'🏭', dbPath:'schedule_packaging_elec' },
-  packaging_mech: { name:'포장기계', icon:'⚙️', dbPath:'schedule_packaging_mech' },
-  hauni_elec:     { name:'하우니전자', icon:'🔌', dbPath:'schedule_hauni_elec' },
-  hauni_mech:     { name:'하우니기계', icon:'🔧', dbPath:'schedule_hauni_mech' },
+  packaging_elec: { name:'포케전자', dbPath:'schedule_packaging_elec' },
+  packaging_mech: { name:'포케기계', dbPath:'schedule_packaging_mech' },
+  hauni_elec:     { name:'하우니전자', dbPath:'schedule_hauni_elec' },
+  hauni_mech:     { name:'하우니기계', dbPath:'schedule_hauni_mech' },
 };
 
-let currentTeamKey = null;  // 선택된 팀 키
-let currentDbPath  = null;  // Firebase 경로
-let dbListener     = null;  // Firebase 리스너 참조
-
-// ══════════════════════════════════════
-//  상수
-// ══════════════════════════════════════
-let ADMIN_PIN = '1234';
-const SHIFT_TYPE_OPTS = [
+let currentTeamKey=null, currentDbPath=null, dbListener=null;
+let ADMIN_PIN='1234';
+const SHIFT_TYPE_OPTS=[
   {value:'none',label:'없음'},{value:'am',label:'오전'},
   {value:'pm',label:'오후'},{value:'night',label:'야간'},
 ];
-const DEF_TIMES = {am:{s:7,e:15},pm:{s:15,e:23},night:{s:23,e:31}};
-const EVENT_OPTIONS = [
+const DEF_TIMES={am:{s:7,e:15},pm:{s:15,e:23},night:{s:23,e:31}};
+const EVENT_OPTIONS=[
   {value:'none',label:'없음'},{value:'off',label:'연차'},
   {value:'timeleave',label:'시간차'},{value:'family',label:'가족사랑'},
   {value:'fitness',label:'체력단련'},{value:'groupoff',label:'단체연차'},
   {value:'edu',label:'교육'},{value:'special',label:'설비/기타'},
 ];
-const BADGE_CLASS = {
+const BADGE_CLASS={
   'off':'badge-off','timeleave':'badge-timeleave','family':'badge-family',
   'fitness':'badge-fitness','groupoff':'badge-groupoff','edu':'badge-edu','special':'badge-special',
 };
-const BADGE_LABEL = {
+const BADGE_LABEL={
   'off':'연차','timeleave':'시간차','family':'가족사랑',
   'fitness':'체력단련','groupoff':'단체연차','edu':'교육','special':'설비/기타',
 };
-const SHIFT_ORDER = {am:0,pm:1,night:2};
-const SHIFT_LABEL_MAP = {am:'오전',pm:'오후',night:'야간'};
-const ROW_CLS = {am:'row-am',pm:'row-pm',night:'row-night'};
+const SHIFT_ORDER={am:0,pm:1,night:2};
+const SHIFT_LABEL_MAP={am:'오전',pm:'오후',night:'야간'};
+const ROW_CLS={am:'row-am',pm:'row-pm',night:'row-night'};
 
-// ══════════════════════════════════════
-//  상태
-// ══════════════════════════════════════
-let isAdmin=false, isViewOnly=false, pinValue='';
-let currentYear=new Date().getFullYear(), currentMonth=new Date().getMonth(), currentWeek=0;
+let isAdmin=false,isViewOnly=false,pinValue='';
+let currentYear=new Date().getFullYear(),currentMonth=new Date().getMonth(),currentWeek=0;
 let members=['팀원1','팀원2','팀원3'];
-let overrides={}, modalKey=null, modalDate=null, currentDayType='normal';
-let popupKey=null, popupDate=null;
+let overrides={},modalKey=null,modalDate=null,currentDayType='normal';
+let popupKey=null,popupDate=null;
 
-function isMobile(){ return window.innerWidth<=768; }
+function isMobile(){return window.innerWidth<=768;}
 
-// ══════════════════════════════════════
-//  ★ 팀 선택
-// ══════════════════════════════════════
-function selectTeam(teamKey, teamName) {
-  currentTeamKey = teamKey;
-  currentDbPath  = TEAMS[teamKey].dbPath;
-
-  // 팀 선택 UI → PIN 입력 UI
-  document.getElementById('teamSelectWrap').style.display = 'none';
+// ★ 팀 선택
+function selectTeam(teamKey,teamName){
+  currentTeamKey=teamKey;
+  currentDbPath=TEAMS[teamKey].dbPath;
+  document.getElementById('teamSelectWrap').style.display='none';
   document.getElementById('pinInputSection').classList.add('show');
-  document.getElementById('pinTitle').textContent = `🔑 ${teamName} 관리자 PIN`;
-  document.querySelector('.pin-box p').textContent = `${TEAMS[teamKey].icon} ${teamName}`;
-
-  // 팀별 PIN 먼저 불러오기
-  db.ref(`${currentDbPath}/adminPin`).once('value', snap => {
-    if(snap.val()) ADMIN_PIN = snap.val();
-    else ADMIN_PIN = '1234';
+  document.getElementById('pinTitle').textContent=`🔑 ${teamName} 관리자 PIN`;
+  document.querySelector('.pin-box p').textContent=teamName;
+  db.ref(`${currentDbPath}/adminPin`).once('value',snap=>{
+    ADMIN_PIN=snap.val()||'1234';
   });
 }
 
-function backToTeamSelect() {
-  currentTeamKey = null;
-  currentDbPath  = null;
-  pinValue = '';
-  updatePinDots();
-  document.getElementById('pinError').textContent = '';
-  document.getElementById('teamSelectWrap').style.display = 'flex';
+function backToTeamSelect(){
+  currentTeamKey=null;currentDbPath=null;
+  pinValue='';updatePinDots();
+  document.getElementById('pinError').textContent='';
+  document.getElementById('teamSelectWrap').style.display='flex';
   document.getElementById('pinInputSection').classList.remove('show');
-  document.querySelector('.pin-box p').textContent = '팀을 선택하세요';
+  document.querySelector('.pin-box p').textContent='팀을 선택하세요';
 }
 
-// ══════════════════════════════════════
-//  PIN 로그인
-// ══════════════════════════════════════
 function pinInput(num){
-  if(!currentTeamKey){ alert('팀을 먼저 선택해주세요!'); return; }
+  if(!currentTeamKey){alert('팀을 먼저 선택해주세요!');return;}
   if(pinValue.length>=4)return;
   pinValue+=num;updatePinDots();
   if(pinValue.length===4)checkPin();
@@ -680,12 +639,12 @@ function checkPin(){
     isAdmin=true;isViewOnly=false;
     document.getElementById('pinOverlay').classList.add('hidden');
     document.getElementById('userBar').className='user-bar';
-    const team = TEAMS[currentTeamKey];
-    document.getElementById('userBarText').textContent = `👑 ${team.icon} ${team.name} | 관리자`;
-    document.getElementById('headerTitle').textContent = `📅 ${team.name} 근무달력`;
+    const team=TEAMS[currentTeamKey];
+    document.getElementById('userBarText').textContent=`👑 ${team.name} | 관리자`;
+    document.getElementById('headerTitle').textContent=`📅 ${team.name} 근무달력`;
     showAdminUI();
-    sessionStorage.setItem('ngpTeam', currentTeamKey);
-    sessionStorage.setItem('ngpRole', 'admin');
+    sessionStorage.setItem('ngpTeam',currentTeamKey);
+    sessionStorage.setItem('ngpRole','admin');
     initFirebaseTeam();
   }else{
     document.getElementById('pinError').textContent='❌ PIN이 틀렸습니다.';
@@ -693,39 +652,36 @@ function checkPin(){
   }
 }
 function enterViewOnly(){
-  if(!currentTeamKey){ alert('팀을 먼저 선택해주세요!'); return; }
+  if(!currentTeamKey){alert('팀을 먼저 선택해주세요!');return;}
   isAdmin=false;isViewOnly=true;
   document.getElementById('pinOverlay').classList.add('hidden');
   document.getElementById('userBar').className='user-bar view-only';
-  const team = TEAMS[currentTeamKey];
-  document.getElementById('userBarText').textContent = `👁️ ${team.icon} ${team.name} | 게스트`;
-  document.getElementById('headerTitle').textContent = `📅 ${team.name} 근무달력`;
+  const team=TEAMS[currentTeamKey];
+  document.getElementById('userBarText').textContent=`👁️ ${team.name} | 게스트`;
+  document.getElementById('headerTitle').textContent=`📅 ${team.name} 근무달력`;
   showGuestUI();
-  sessionStorage.setItem('ngpTeam', currentTeamKey);
-  sessionStorage.setItem('ngpRole', 'guest');
+  sessionStorage.setItem('ngpTeam',currentTeamKey);
+  sessionStorage.setItem('ngpRole','guest');
   initFirebaseTeam();
 }
 function logout(){
-  // Firebase 리스너 해제
-  if(dbListener && currentDbPath){
-    db.ref(currentDbPath).off('value', dbListener);
-    dbListener = null;
+  if(dbListener&&currentDbPath){
+    db.ref(currentDbPath).off('value',dbListener);
+    dbListener=null;
   }
   isAdmin=false;isViewOnly=false;pinValue='';
   currentTeamKey=null;currentDbPath=null;
-  members=['팀원1','팀원2','팀원3'];
-  overrides={};
-  sessionStorage.removeItem('ngpRole');
-  sessionStorage.removeItem('ngpTeam');
+  members=['팀원1','팀원2','팀원3'];overrides={};
+  sessionStorage.removeItem('ngpRole');sessionStorage.removeItem('ngpTeam');
   document.getElementById('memberConfig').classList.remove('show');
   document.getElementById('adminControls').style.display='none';
   document.getElementById('guestControls').style.display='none';
   document.getElementById('pinError').textContent='';
   document.getElementById('headerTitle').textContent='📅 근무달력';
+  document.getElementById('calBody').innerHTML='';
   updatePinDots();
   backToTeamSelect();
   document.getElementById('pinOverlay').classList.remove('hidden');
-  document.getElementById('calBody').innerHTML='';
 }
 function showAdminUI(){
   document.getElementById('memberConfig').classList.add('show');
@@ -738,9 +694,6 @@ function showGuestUI(){
   document.getElementById('guestControls').style.display='flex';
 }
 
-// ══════════════════════════════════════
-//  관리자 PIN
-// ══════════════════════════════════════
 function saveAdminPin(){
   const newPin=document.getElementById('adminPinInput').value.trim();
   if(newPin.length!==4||!/^\d{4}$/.test(newPin)){alert('PIN은 숫자 4자리여야 합니다!');return;}
@@ -750,9 +703,6 @@ function saveAdminPin(){
   alert('✅ 관리자 PIN이 변경되었습니다!');
 }
 
-// ══════════════════════════════════════
-//  팀원 관리
-// ══════════════════════════════════════
 function renderMemberConfig(){
   const wrap=document.getElementById('memberListWrap');wrap.innerHTML='';
   members.forEach((name,i)=>{
@@ -778,9 +728,6 @@ function applyConfig(){
   saveToFirebase();renderCalendar();
 }
 
-// ══════════════════════════════════════
-//  공휴일
-// ══════════════════════════════════════
 let holidayCache={};
 const HOLIDAY_FALLBACK={
   2026:{'2026-01-01':'신정','2026-02-16':'설날 전날','2026-02-17':'설날','2026-02-18':'설날 다음날','2026-02-19':'대체공휴일','2026-03-01':'삼일절','2026-05-05':'어린이날','2026-05-24':'부처님 오신 날','2026-06-06':'현충일','2026-08-15':'광복절','2026-09-24':'추석 전날','2026-09-25':'추석','2026-09-26':'추석 다음날','2026-09-28':'대체공휴일','2026-10-03':'개천절','2026-10-09':'한글날','2026-12-25':'크리스마스'},
@@ -795,10 +742,10 @@ async function fetchHolidays(year){
   if(holidayCache[year])return holidayCache[year];
   const statusEl=document.getElementById('holidayStatus');
   try{
-    statusEl.textContent = `🔄 ${year}년 공휴일 불러오는 중...`;
+    statusEl.textContent=`🔄 ${year}년 공휴일 불러오는 중...`;
     const holidays={},promises=[];
     for(let m=1;m<=12;m++){
-      const url = `https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear=${year}&solMonth=${String(m).padStart(2,'0')}&ServiceKey=${API_KEY}&_type=json&numOfRows=20`;
+      const url=`https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear=${year}&solMonth=${String(m).padStart(2,'0')}&ServiceKey=${API_KEY}&_type=json&numOfRows=20`;
       promises.push(fetch(url).then(r=>r.json()).then(data=>{
         const items=data?.response?.body?.items?.item;if(!items)return;
         (Array.isArray(items)?items:[items]).forEach(item=>{
@@ -810,13 +757,13 @@ async function fetchHolidays(year){
     await Promise.all(promises);
     if(!Object.keys(holidays).length)throw new Error();
     holidayCache[year]=holidays;
-    statusEl.textContent = `✅ ${year}년 공휴일 업데이트 완료!`;
+    statusEl.textContent=`✅ ${year}년 공휴일 업데이트 완료!`;
     statusEl.className='holiday-status success';
     setTimeout(()=>{statusEl.style.display='none';},3000);
     return holidayCache[year];
   }catch{
     holidayCache[year]=HOLIDAY_FALLBACK[year]||{};
-    statusEl.textContent = `⚠️ 기본 공휴일 데이터 사용`;
+    statusEl.textContent=`⚠️ 기본 공휴일 데이터 사용`;
     statusEl.className='holiday-status error';
     return holidayCache[year];
   }
@@ -826,45 +773,37 @@ function getHoliday(key){
   return(holidayCache[year]||HOLIDAY_FALLBACK[year]||{})[key];
 }
 
-// ══════════════════════════════════════
-//  ★ Firebase (팀별)
-// ══════════════════════════════════════
 function initFirebaseTeam(){
-  if(!currentDbPath) return;
+  if(!currentDbPath)return;
   const syncEl=document.getElementById('syncStatus');
   db.ref('.info/connected').on('value',snap=>{
     syncEl.textContent=snap.val()?'🟢 실시간 동기화 연결됨':'🔴 오프라인';
     syncEl.className=snap.val()?'sync-status':'sync-status error';
   });
-  // 기존 리스너 해제
-  if(dbListener) db.ref(currentDbPath).off('value', dbListener);
-  dbListener = (snap)=>{
+  if(dbListener)db.ref(currentDbPath).off('value',dbListener);
+  dbListener=(snap)=>{
     const data=snap.val()||{};
     overrides=data.overrides||{};
-    if(data.members) members=data.members;
-    if(data.adminPin) ADMIN_PIN=data.adminPin;
+    if(data.members)members=data.members;
+    if(data.adminPin)ADMIN_PIN=data.adminPin;
     syncEl.textContent='✅ 동기화 완료! '+new Date().toLocaleTimeString('ko-KR');
     syncEl.className='sync-status';
-    if(isAdmin) renderMemberConfig();
+    if(isAdmin)renderMemberConfig();
     renderCalendar();
   };
-  db.ref(currentDbPath).on('value', dbListener);
+  db.ref(currentDbPath).on('value',dbListener);
 }
 
 function saveToFirebase(){
-  if(!currentDbPath) return;
+  if(!currentDbPath)return;
   const syncEl=document.getElementById('syncStatus');
   syncEl.textContent='🔄 저장 중...';syncEl.className='sync-status syncing';
   db.ref(currentDbPath).set({
-    overrides, members,
-    adminPin:ADMIN_PIN,
+    overrides,members,adminPin:ADMIN_PIN,
     lastUpdated:new Date().toISOString()
   });
 }
 
-// ══════════════════════════════════════
-//  네비게이션
-// ══════════════════════════════════════
 function initNavSelectors(){
   const ySel=document.getElementById('yearSel');ySel.innerHTML='';
   for(let y=2026;y<=2050;y++){
@@ -884,7 +823,7 @@ function refreshWeekSel(){
   sel.appendChild(all);
   getWeeksOfMonth(currentYear,currentMonth).forEach((w,i)=>{
     const o=document.createElement('option');o.value=i+1;
-    o.textContent = `${i+1}주차 (${w.start.getDate()}일~${w.end.getDate()}일)`;
+    o.textContent=`${i+1}주차 (${w.start.getDate()}일~${w.end.getDate()}일)`;
     sel.appendChild(o);
   });
   sel.value=currentWeek;
@@ -923,7 +862,7 @@ function nextMonth(){
 }
 
 function toKey(d){
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function getDefaultDayType(date){
   const dow=date.getDay(),key=toKey(date);
@@ -935,14 +874,37 @@ function isHolidayDate(date){
   return dow===0||dow===6||!!getHoliday(key);
 }
 
-// ══════════════════════════════════════
-//  모바일 상세 팝업
-// ══════════════════════════════════════
+function calcHours(startH,endH){
+  let eH=endH<=startH?endH+24:endH,nightH=0,dayH=0;
+  for(let h=startH;h<eH;h++){const hm=h%24;if(hm>=22||hm<6)nightH++;else dayH++;}
+  return{dayH,nightH,totalH:eH-startH};
+}
+function calcWeekdayPay(startH,endH){
+  let eH=endH<=startH?endH+24:endH;
+  const totalH=eH-startH,overH=Math.max(0,totalH-8);
+  if(overH<=0)return{extH:0,nightExtH:0};
+  let extDay=0,extNight=0,remain=overH;
+  for(let h=eH-1;h>=startH&&remain>0;h--){
+    const hm=h%24;if(hm>=22||hm<6)extNight++;else extDay++;remain--;
+  }
+  return{extH:extDay,nightExtH:extNight};
+}
+function calcHolidayPay(startH,endH){
+  const{dayH,nightH,totalH}=calcHours(startH,endH);
+  return{holidayH:totalH,holidayNightH:nightH};
+}
+function getExtHours(startH,endH,dayType){
+  let eH=endH<=startH?endH+24:endH;
+  const totalH=eH-startH;
+  return dayType==='normal'?Math.max(0,totalH-8):totalH;
+}
+function fmtH(h){if(!h||h===0)return'-';return(Math.round(h*10)/10)+'h';}
+
 function openShiftPopup(key,date,dayType,ov){
   popupKey=key;popupDate=date;
-  const dateLabel = `${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`;
-  document.getElementById('shiftPopupTitle').textContent = `📅 ${dateLabel}`;
-  document.getElementById('shiftPopupEditBtn').style.display = isAdmin?'block':'none';
+  const dateLabel=`${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`;
+  document.getElementById('shiftPopupTitle').textContent=`📅 ${dateLabel}`;
+  document.getElementById('shiftPopupEditBtn').style.display=isAdmin?'block':'none';
   const content=document.getElementById('shiftPopupContent');content.innerHTML='';
   if(dayType==='off'){
     content.innerHTML='<div style="text-align:center;padding:20px;color:#a0aec0;font-size:1rem;">🔘 휴무일</div>';
@@ -959,18 +921,18 @@ function openShiftPopup(key,date,dayType,ov){
       .sort((a,b)=>(SHIFT_ORDER[a[1].type]??3)-(SHIFT_ORDER[b[1].type]??3))
       .forEach(([name,s])=>{
         const row=document.createElement('div');
-        row.className = `shift-popup-row ${ROW_CLS[s.type]||''}`;
-        const lbl=document.createElement('span');lbl.className = `shift-popup-label ${s.type}`;
+        row.className=`shift-popup-row ${ROW_CLS[s.type]||''}`;
+        const lbl=document.createElement('span');lbl.className=`shift-popup-label ${s.type}`;
         lbl.textContent=SHIFT_LABEL_MAP[s.type]||s.type;
         const nm=document.createElement('span');nm.className='shift-popup-name';nm.textContent=name;
         const tm=document.createElement('span');tm.className='shift-popup-time';
         const eDisp=s.endH>=24?s.endH-24+'(익일)':s.endH;
-        tm.textContent = `${s.startH}시~${eDisp}시`;
+        tm.textContent=`${s.startH}시~${eDisp}시`;
         row.appendChild(lbl);row.appendChild(nm);row.appendChild(tm);
         const extH=getExtHours(s.startH,s.endH,dayType);
         if(extH>0){
           const ext=document.createElement('span');ext.className='shift-popup-ext';
-          ext.textContent = `+${Math.round(extH*10)/10}h`;row.appendChild(ext);
+          ext.textContent=`+${Math.round(extH*10)/10}h`;row.appendChild(ext);
         }
         content.appendChild(row);
       });
@@ -986,9 +948,9 @@ function openShiftPopup(key,date,dayType,ov){
       evTitle.textContent='🏖️ 휴가/이벤트';evDiv.appendChild(evTitle);
       evEntries.forEach(([name,ev])=>{
         const b=document.createElement('span');
-        b.className = `badge ${BADGE_CLASS[ev.type]||'badge-special'}`;
-        let txt = `${BADGE_LABEL[ev.type]||ev.type} ${name}`;
-        if(ev.type==='timeleave'&&ev.hours) txt += ` ${ev.hours}h`;
+        b.className=`badge ${BADGE_CLASS[ev.type]||'badge-special'}`;
+        let txt=`${BADGE_LABEL[ev.type]||ev.type} ${name}`;
+        if(ev.type==='timeleave'&&ev.hours)txt+=` ${ev.hours}h`;
         b.textContent=txt;evDiv.appendChild(b);
       });
       content.appendChild(evDiv);
@@ -1021,38 +983,6 @@ document.getElementById('shiftPopupOverlay').addEventListener('click',function(e
   if(e.target===this)closeShiftPopup();
 });
 
-// ══════════════════════════════════════
-//  수당 계산
-// ══════════════════════════════════════
-function calcHours(startH,endH){
-  let eH=endH<=startH?endH+24:endH,nightH=0,dayH=0;
-  for(let h=startH;h<eH;h++){const hm=h%24;if(hm>=22||hm<6)nightH++;else dayH++;}
-  return{dayH,nightH,totalH:eH-startH};
-}
-function calcWeekdayPay(startH,endH){
-  let eH=endH<=startH?endH+24:endH;
-  const totalH=eH-startH,overH=Math.max(0,totalH-8);
-  if(overH<=0)return{extH:0,nightExtH:0};
-  let extDay=0,extNight=0,remain=overH;
-  for(let h=eH-1;h>=startH&&remain>0;h--){
-    const hm=h%24;if(hm>=22||hm<6)extNight++;else extDay++;remain--;
-  }
-  return{extH:extDay,nightExtH:extNight};
-}
-function calcHolidayPay(startH,endH){
-  const{dayH,nightH,totalH}=calcHours(startH,endH);
-  return{holidayH:totalH,holidayNightH:nightH};
-}
-function getExtHours(startH,endH,dayType){
-  let eH=endH<=startH?endH+24:endH;
-  const totalH=eH-startH;
-  return dayType==='normal'?Math.max(0,totalH-8):totalH;
-}
-function fmtH(h){if(!h||h===0)return'-';return(Math.round(h*10)/10)+'h';}
-
-// ══════════════════════════════════════
-//  달력 셀 렌더링
-// ══════════════════════════════════════
 function renderCellContent(td,dayType,ov){
   if(dayType==='off'){
     const ol=document.createElement('div');ol.className='off-label';ol.textContent='🔘 휴무';
@@ -1069,18 +999,18 @@ function renderCellContent(td,dayType,ov){
     .sort((a,b)=>(SHIFT_ORDER[a[1].type]??3)-(SHIFT_ORDER[b[1].type]??3))
     .forEach(([name,s])=>{
       const row=document.createElement('div');
-      row.className = `cell-shift-row ${ROW_CLS[s.type]||''}`;
+      row.className=`cell-shift-row ${ROW_CLS[s.type]||''}`;
       const lbl=document.createElement('span');
-      lbl.className = `cell-shift-label ${s.type}`;lbl.textContent=SHIFT_LABEL_MAP[s.type]||s.type;
+      lbl.className=`cell-shift-label ${s.type}`;lbl.textContent=SHIFT_LABEL_MAP[s.type]||s.type;
       const nm=document.createElement('span');nm.className='cell-shift-name';nm.textContent=name;
       const tm=document.createElement('span');tm.className='cell-shift-time';
       const eDisp=s.endH>=24?s.endH-24+'(익)':s.endH;
-      tm.textContent = ` ${s.startH}~${eDisp}`;
+      tm.textContent=` ${s.startH}~${eDisp}`;
       row.appendChild(lbl);row.appendChild(nm);row.appendChild(tm);
       const extH=getExtHours(s.startH,s.endH,dayType);
       if(extH>0){
         const ext=document.createElement('span');ext.className='cell-shift-ext';
-        ext.textContent = `+${Math.round(extH*10)/10}h`;row.appendChild(ext);
+        ext.textContent=`+${Math.round(extH*10)/10}h`;row.appendChild(ext);
       }
       td.appendChild(row);
     });
@@ -1090,18 +1020,15 @@ function renderCellContent(td,dayType,ov){
     const ea=document.createElement('div');ea.className='cell-event-area';
     evEntries.forEach(([name,ev])=>{
       const b=document.createElement('span');
-      b.className = `badge ${BADGE_CLASS[ev.type]||'badge-special'}`;
-      let txt = `${BADGE_LABEL[ev.type]||ev.type} ${name}`;
-      if(ev.type==='timeleave'&&ev.hours) txt += ` ${ev.hours}h`;
+      b.className=`badge ${BADGE_CLASS[ev.type]||'badge-special'}`;
+      let txt=`${BADGE_LABEL[ev.type]||ev.type} ${name}`;
+      if(ev.type==='timeleave'&&ev.hours)txt+=` ${ev.hours}h`;
       b.textContent=txt;ea.appendChild(b);
     });
     td.appendChild(ea);
   }
 }
 
-// ══════════════════════════════════════
-//  달력 렌더링
-// ══════════════════════════════════════
 function renderCalendar(){
   const tbody=document.getElementById('calBody');tbody.innerHTML='';
   const firstDay=new Date(currentYear,currentMonth,1).getDay();
@@ -1142,17 +1069,15 @@ function renderCalendar(){
       }
       const numDiv=document.createElement('div');numDiv.className='date-num';
       numDiv.textContent=cellDate.getDate();
-      // 관리자만 수정 마크 표시
       if(ov&&isAdmin){
         const m=document.createElement('span');m.className='modified-mark';m.textContent='🔧';
         numDiv.appendChild(m);
       }
-      // 메모 아이콘
       if(ov&&ov.memo){
         const icon=document.createElement('span');icon.className='memo-icon';icon.textContent='📌';
         icon.addEventListener('click',e=>{
           e.stopPropagation();
-          const dateLabel = `${cellDate.getFullYear()}년 ${cellDate.getMonth()+1}월 ${cellDate.getDate()}일`;
+          const dateLabel=`${cellDate.getFullYear()}년 ${cellDate.getMonth()+1}월 ${cellDate.getDate()}일`;
           openMemoModal(ov.memo,dateLabel);
         });
         numDiv.appendChild(icon);
@@ -1161,7 +1086,8 @@ function renderCalendar(){
       const holiday=getHoliday(key);
       if(holiday){
         const hl=document.createElement('div');hl.className='holiday-label';
-        hl.textContent = '🎉 '+holiday;
+        // ★ 태극기 이미지
+        hl.innerHTML='<img src="https://flagcdn.com/w20/kr.png" style="width:12px;height:9px;vertical-align:middle;margin-right:2px;" onerror="this.style.display=\'none\'">'+holiday;
         td.appendChild(hl);
       }
       if(!td.classList.contains('other-month'))renderCellContent(td,dayType,ov);
@@ -1187,9 +1113,6 @@ function renderCalendar(){
   }
 }
 
-// ══════════════════════════════════════
-//  메모 팝업
-// ══════════════════════════════════════
 function openMemoModal(memo,dateLabel){
   document.getElementById('memoModalDate').textContent=dateLabel||'';
   document.getElementById('memoModalBody').textContent=memo;
@@ -1200,9 +1123,6 @@ document.getElementById('memoModalOverlay').addEventListener('click',function(e)
   if(e.target===this)closeMemoModal();
 });
 
-// ══════════════════════════════════════
-//  통계
-// ══════════════════════════════════════
 function openStats(){
   const ysel=document.getElementById('statsYearSel');ysel.innerHTML='';
   for(let y=2026;y<=2050;y++){
@@ -1255,10 +1175,10 @@ function renderStats(){
       }
     });
   });
-  const teamName = currentTeamKey ? TEAMS[currentTeamKey].name : '';
-  let html = '';
-  html += `<div class="stats-section-title">📅 ${teamName} 연간 통계 (${year}년)</div>`;
-  html += `<table class="stats-table"><thead><tr>
+  const teamName=currentTeamKey?TEAMS[currentTeamKey].name:'';
+  let html='';
+  html+=`<div class="stats-section-title">📅 ${teamName} 연간 통계 (${year}년)</div>`;
+  html+=`<table class="stats-table"><thead><tr>
     <th style="min-width:60px;">팀원</th>
     <th>연차<br><small>(일)</small></th>
     <th>가족사랑<br><small>(횟수)</small></th>
@@ -1274,14 +1194,14 @@ function renderStats(){
       <td>${s.fitnessCnt>0?s.fitnessCnt+'회':'-'}</td>
     </tr>`;
   });
-  html += `</tbody></table>`;
-  html += `<div class="stats-section-title" style="margin-top:20px;">
+  html+=`</tbody></table>`;
+  html+=`<div class="stats-section-title" style="margin-top:20px;">
     📆 월별 수당 현황
     <select class="stats-month-sel" id="statsMonthSel" onchange="renderMonthlyTable()">`;
   for(let m=1;m<=12;m++){
-    html += `<option value="${m}" ${m===currentMonth+1?'selected':''}>${m}월</option>`;
+    html+=`<option value="${m}" ${m===currentMonth+1?'selected':''}>${m}월</option>`;
   }
-  html += `</select></div><div id="monthlyTableWrap"></div>`;
+  html+=`</select></div><div id="monthlyTableWrap"></div>`;
   document.getElementById('statsContent').innerHTML=html;
   window._monthlyStats=monthlyStats;
   window._statsMembers=[...members];
@@ -1317,9 +1237,6 @@ function renderMonthlyTable(){
   wrap.innerHTML=html;
 }
 
-// ══════════════════════════════════════
-//  편집 모달
-// ══════════════════════════════════════
 function selectDayType(type){
   currentDayType=type;
   document.getElementById('btnOff').className='day-type-btn'+(type==='off'?' selected-off':'');
@@ -1333,7 +1250,7 @@ function openModal(key,date){
   modalKey=key;modalDate=date;
   const existing=overrides[key];
   const initType=existing?existing.dayType:getDefaultDayType(date);
-  document.getElementById('modalTitle').textContent =
+  document.getElementById('modalTitle').textContent=
     `📅 ${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`;
   selectDayType(initType);
   const container=document.getElementById('shiftMemberRows');container.innerHTML='';
@@ -1486,30 +1403,27 @@ if('serviceWorker' in navigator){
 (async()=>{
   initNavSelectors();
   await fetchHolidays(currentYear);
-
-  // ★ 세션 복원
   const savedRole=sessionStorage.getItem('ngpRole');
   const savedTeam=sessionStorage.getItem('ngpTeam');
-  if(savedTeam && TEAMS[savedTeam]){
+  if(savedTeam&&TEAMS[savedTeam]){
     currentTeamKey=savedTeam;
     currentDbPath=TEAMS[savedTeam].dbPath;
     const team=TEAMS[savedTeam];
-    document.getElementById('headerTitle').textContent = `📅 ${team.name} 근무달력`;
-    // PIN 먼저 불러오기
+    document.getElementById('headerTitle').textContent=`📅 ${team.name} 근무달력`;
     await db.ref(`${currentDbPath}/adminPin`).once('value').then(snap=>{
-      if(snap.val()) ADMIN_PIN=snap.val();
+      if(snap.val())ADMIN_PIN=snap.val();
     });
     if(savedRole==='admin'){
       isAdmin=true;
       document.getElementById('pinOverlay').classList.add('hidden');
       document.getElementById('userBar').className='user-bar';
-      document.getElementById('userBarText').textContent = `👑 ${team.icon} ${team.name} | 관리자`;
+      document.getElementById('userBarText').textContent=`👑 ${team.name} | 관리자`;
       showAdminUI();
     }else if(savedRole==='guest'){
       isViewOnly=true;
       document.getElementById('pinOverlay').classList.add('hidden');
       document.getElementById('userBar').className='user-bar view-only';
-      document.getElementById('userBarText').textContent = `👁️ ${team.icon} ${team.name} | 게스트`;
+      document.getElementById('userBarText').textContent=`👁️ ${team.name} | 게스트`;
       showGuestUI();
     }
     initFirebaseTeam();
