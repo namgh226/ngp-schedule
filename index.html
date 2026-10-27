@@ -119,6 +119,7 @@
     .badge-groupoff{background:#ffebee;color:#b71c1c;}
     .badge-edu{background:#c6f6d5;color:#22543d;}
     .badge-special{background:#e2e8f0;color:#4a5568;}
+    .badge-maternity{background:#d1fae5;color:#065f46;}
     .memo-icon{display:inline-flex;align-items:center;font-size:.75rem;color:#718096;cursor:pointer;background:#f7fafc;border-radius:3px;padding:2px 4px;border:1px solid #e2e8f0;margin-left:4px;}
     .memo-icon:hover{background:#ebf8ff;border-color:#2b6cb0;}
     .memo-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:400;align-items:center;justify-content:center;}
@@ -387,6 +388,7 @@
   <div class="legend-item"><div class="legend-box" style="background:#e8f5e9;"></div>체력단련</div>
   <div class="legend-item"><div class="legend-box" style="background:#ffebee;"></div>단체연차</div>
   <div class="legend-item"><div class="legend-box" style="background:#c6f6d5;border-color:#9ae6b4;"></div>교육</div>
+  <div class="legend-item"><div class="legend-box" style="background:#d1fae5;border-color:#6ee7b7;"></div>출산휴가</div>
   <div class="legend-item">📌 메모</div>
 </div>
 <div class="memo-modal-overlay" id="memoModalOverlay">
@@ -470,7 +472,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// ===== 팀 목록 (Firebase에서 동적 로드) =====
 let TEAMS = {};
 
 let currentTeamKey=null, currentDbPath=null, dbListener=null;
@@ -484,15 +485,18 @@ const EVENT_OPTIONS=[
   {value:'none',label:'없음'},{value:'off',label:'연차'},
   {value:'timeleave',label:'시간차'},{value:'family',label:'가족사랑'},
   {value:'fitness',label:'체력단련'},{value:'groupoff',label:'단체연차'},
-  {value:'edu',label:'교육'},{value:'special',label:'설비/기타'},
+  {value:'edu',label:'교육'},{value:'maternity',label:'출산휴가'},
+  {value:'special',label:'설비/기타'},
 ];
 const BADGE_CLASS={
   'off':'badge-off','timeleave':'badge-timeleave','family':'badge-family',
-  'fitness':'badge-fitness','groupoff':'badge-groupoff','edu':'badge-edu','special':'badge-special',
+  'fitness':'badge-fitness','groupoff':'badge-groupoff','edu':'badge-edu',
+  'maternity':'badge-maternity','special':'badge-special',
 };
 const BADGE_LABEL={
   'off':'연차','timeleave':'시간차','family':'가족사랑',
-  'fitness':'체력단련','groupoff':'단체연차','edu':'교육','special':'설비/기타',
+  'fitness':'체력단련','groupoff':'단체연차','edu':'교육',
+  'maternity':'출산휴가','special':'설비/기타',
 };
 const SHIFT_ORDER={am:0,pm:1,night:2};
 const SHIFT_LABEL_MAP={am:'오전',pm:'오후',night:'야간'};
@@ -505,7 +509,6 @@ let popupKey=null, popupDate=null;
 
 function isMobile(){ return window.innerWidth<=768; }
 
-// ===== 마스터 관리자 =====
 let MASTER_PIN='9999';
 const MASTER_PIN_REF='masterPin';
 const TEAMS_REGISTRY_REF='teamsRegistry';
@@ -619,7 +622,6 @@ function changeMasterPin(){
   alert('✅ 마스터 PIN이 변경되었습니다!');
 }
 
-// ===== 팀 선택 / PIN 로그인 =====
 function selectTeam(teamKey,teamName){
   currentTeamKey=teamKey;
   currentDbPath=TEAMS[teamKey].dbPath;
@@ -720,7 +722,6 @@ function saveAdminPin(){
   alert('✅ 관리자 PIN이 변경되었습니다!');
 }
 
-// ===== 팀원 관리 =====
 function renderMemberConfig(){
   const wrap=document.getElementById('memberListWrap'); wrap.innerHTML='';
   members.forEach((name,i)=>{
@@ -746,7 +747,6 @@ function applyConfig(){
   saveToFirebase(); renderCalendar();
 }
 
-// ===== 공휴일 =====
 let holidayCache={};
 const HOLIDAY_FALLBACK={
   2026:{'2026-01-01':'신정','2026-02-16':'설날 전날','2026-02-17':'설날','2026-02-18':'설날 다음날','2026-02-19':'대체공휴일','2026-03-01':'삼일절','2026-05-05':'어린이날','2026-05-24':'부처님 오신 날','2026-06-06':'현충일','2026-08-15':'광복절','2026-09-24':'추석 전날','2026-09-25':'추석','2026-09-26':'추석 다음날','2026-09-28':'대체공휴일','2026-10-03':'개천절','2026-10-09':'한글날','2026-12-25':'크리스마스'},
@@ -792,7 +792,6 @@ function getHoliday(key){
   return (holidayCache[year]||HOLIDAY_FALLBACK[year]||{})[key];
 }
 
-// ===== Firebase 동기화 =====
 function initFirebaseTeam(){
   if(!currentDbPath) return;
   const syncEl=document.getElementById('syncStatus');
@@ -823,7 +822,6 @@ function saveToFirebase(){
   });
 }
 
-// ===== 네비게이션 =====
 function initNavSelectors(){
   const ySel=document.getElementById('yearSel'); ySel.innerHTML='';
   for(let y=2026;y<=2050;y++){
@@ -894,7 +892,6 @@ function isHolidayDate(date){
   return dow===0||dow===6||!!getHoliday(key);
 }
 
-// ===== 시간 계산 (0.5시간 단위 지원) =====
 function calcHours(startH, endH){
   const s=Math.round(startH*2);
   const e=Math.round(endH*2);
@@ -936,7 +933,6 @@ function fmtTime(h){
   return str;
 }
 
-// ===== 모바일 상세 팝업 =====
 function openShiftPopup(key,date,dayType,ov){
   popupKey=key; popupDate=date;
   const dateLabel=`${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`;
@@ -1019,7 +1015,6 @@ document.getElementById('shiftPopupOverlay').addEventListener('click',function(e
   if(e.target===this) closeShiftPopup();
 });
 
-// ===== 달력 셀 렌더링 =====
 function renderCellContent(td,dayType,ov){
   if(dayType==='off'){
     const ol=document.createElement('div'); ol.className='off-label'; ol.textContent='🔘 휴무';
@@ -1158,7 +1153,6 @@ document.getElementById('memoModalOverlay').addEventListener('click',function(e)
   if(e.target===this) closeMemoModal();
 });
 
-// ===== 통계 =====
 function openStats(){
   const ysel=document.getElementById('statsYearSel'); ysel.innerHTML='';
   for(let y=2026;y<=2050;y++){
@@ -1173,7 +1167,7 @@ function closeStats(){ document.getElementById('statsOverlay').classList.remove(
 function renderStats(){
   const year=parseInt(document.getElementById('statsYearSel').value);
   const annualStats={};
-  members.forEach(name=>{ annualStats[name]={annualH:0,familyCnt:0,fitnessCnt:0}; });
+  members.forEach(name=>{ annualStats[name]={annualH:0,familyCnt:0,fitnessCnt:0,maternityCnt:0}; });
   const monthlyStats={};
   members.forEach(name=>{
     monthlyStats[name]={};
@@ -1208,6 +1202,7 @@ function renderStats(){
         case 'timeleave': annualStats[name].annualH+=parseFloat(ev.hours||4); break;
         case 'family':    annualStats[name].familyCnt++; break;
         case 'fitness':   annualStats[name].fitnessCnt++; break;
+        case 'maternity': annualStats[name].maternityCnt++; break;
       }
     });
   });
@@ -1219,6 +1214,7 @@ function renderStats(){
     <th>연차<br><small>(일)</small></th>
     <th>가족사랑<br><small>(횟수)</small></th>
     <th>체력단련<br><small>(횟수)</small></th>
+    <th>출산휴가<br><small>(일)</small></th>
   </tr></thead><tbody>`;
   members.forEach(name=>{
     const s=annualStats[name]; if(!s) return;
@@ -1228,10 +1224,11 @@ function renderStats(){
       <td>${annualDay}</td>
       <td>${s.familyCnt>0?s.familyCnt+'회':'-'}</td>
       <td>${s.fitnessCnt>0?s.fitnessCnt+'회':'-'}</td>
+      <td>${s.maternityCnt>0?s.maternityCnt+'일':'-'}</td>
     </tr>`;
   });
   html+=`</tbody></table>`;
-  html+=`<div class="stats-section-title" style="margin-top:20px;">📆 월별 시간외근무현황
+  html+=`<div class="stats-section-title" style="margin-top:20px;">📆 월별 시간외 근무 현황
     <select class="stats-month-sel" id="statsMonthSel" onchange="renderMonthlyTable()">`;
   for(let m=1;m<=12;m++){
     html+=`<option value="${m}" ${m===currentMonth+1?'selected':''}>${m}월</option>`;
@@ -1272,7 +1269,6 @@ function renderMonthlyTable(){
   wrap.innerHTML=html;
 }
 
-// ===== 편집 모달 =====
 function selectDayType(type){
   currentDayType=type;
   document.getElementById('btnOff').className='day-type-btn'+(type==='off'?' selected-off':'');
