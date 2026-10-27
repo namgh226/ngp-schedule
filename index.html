@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>NGP근무달력</title>
+  <title>NGP팀장근무달력</title>
   <link rel="manifest" href="/ngp-schedule/manifest.json">
   <meta name="theme-color" content="#2b6cb0">
   <meta name="mobile-web-app-capable" content="yes">
@@ -1231,7 +1231,7 @@ function renderStats(){
     </tr>`;
   });
   html+=`</tbody></table>`;
-  html+=`<div class="stats-section-title" style="margin-top:20px;">📆 월별 시간외 근무 현황
+  html+=`<div class="stats-section-title" style="margin-top:20px;">📆 월별 시간외근무현황
     <select class="stats-month-sel" id="statsMonthSel" onchange="renderMonthlyTable()">`;
   for(let m=1;m<=12;m++){
     html+=`<option value="${m}" ${m===currentMonth+1?'selected':''}>${m}월</option>`;
