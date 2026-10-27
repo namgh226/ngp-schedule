@@ -816,11 +816,12 @@ function saveToFirebase(){
   if(!currentDbPath) return;
   const syncEl=document.getElementById('syncStatus');
   syncEl.textContent='🔄 저장 중...'; syncEl.className='sync-status syncing';
-  db.ref(currentDbPath).set({
+  // set() → update()로 변경: 지정한 필드만 갱신, 혹시 모를 전체 덮어쓰기 사고 방지
+  db.ref(currentDbPath).update({
     overrides, members, adminPin:ADMIN_PIN,
     lastUpdated:new Date().toISOString()
   });
-}
+}  
 
 function initNavSelectors(){
   const ySel=document.getElementById('yearSel'); ySel.innerHTML='';
