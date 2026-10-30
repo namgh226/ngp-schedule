@@ -103,7 +103,6 @@
     .today{outline:2px solid #2b6cb0;outline-offset:-2px;}
     .today .date-num{color:#2b6cb0;}
     .holiday-label{font-size:.7rem;color:#c53030;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .modified-mark{font-size:.62rem;color:#e53e3e;margin-left:auto;}
     .off-label{display:flex;align-items:center;justify-content:center;height:55px;font-size:.88rem;color:#a0aec0;font-weight:700;}
     .special-tag{display:inline-block;font-size:.7rem;background:#f6e05e;color:#744210;border-radius:3px;padding:1px 5px;font-weight:700;margin-bottom:2px;}
     .cell-shift-row{display:flex;align-items:center;gap:3px;margin-bottom:2px;font-size:.78rem;line-height:1.3;border-radius:4px;padding:1px 4px;}
@@ -1433,10 +1432,6 @@ function renderCalendar(){
       }
       const numDiv=document.createElement('div'); numDiv.className='date-num';
       numDiv.textContent=cellDate.getDate();
-      if(ov&&isAdmin){
-        const m=document.createElement('span'); m.className='modified-mark'; m.textContent='🔧';
-        numDiv.appendChild(m);
-      }
       if(isCurrent && dayType!=='off' && ov){
         const tag=document.createElement('span');
         if(ov.confirmed){
