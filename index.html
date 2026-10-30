@@ -48,6 +48,7 @@
     .back-btn:hover{background:#edf2f7;}
     .user-bar{background:#2c5282;color:#fff;padding:8px 20px;display:flex;align-items:center;justify-content:space-between;font-size:.82rem;}
     .user-bar.view-only{background:#4a5568;}
+    .user-bar.planner{background:#2c7a7b;}
     .logout-btn{padding:4px 12px;background:rgba(255,255,255,.2);border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:.78rem;}
     .logout-btn:hover{background:rgba(255,255,255,.35);}
     .edit-locked{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#2d3748;color:#fff;padding:10px 24px;border-radius:20px;font-size:.82rem;z-index:500;display:none;box-shadow:0 4px 12px rgba(0,0,0,.2);}
@@ -241,16 +242,61 @@
       .calendar-wrap{padding:4px;}
       td{height:90px;max-height:none;overflow:visible;}
     }
+
+    /* ===== ★ 신규 추가 스타일 (기존 설정값 변경 없음, 새 요소만) ===== */
+    .role-select-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+    .role-btn{padding:14px;border-radius:10px;border:2px solid #e2e8f0;cursor:pointer;
+      font-size:.95rem;font-weight:700;background:#f7fafc;transition:all .15s;text-align:center;}
+    .role-btn:hover{border-color:#2b6cb0;background:#ebf8ff;}
+    .planner-team-select{display:none;}
+    .planner-team-select.show{display:block;}
+
+    .notif-bell{position:relative;cursor:pointer;background:rgba(255,255,255,.2);
+      border:none;border-radius:6px;color:#fff;padding:4px 10px;font-size:.85rem;}
+    .notif-bell:hover{background:rgba(255,255,255,.35);}
+    .notif-badge{position:absolute;top:-6px;right:-6px;background:#e53e3e;color:#fff;
+      font-size:.65rem;font-weight:700;border-radius:50%;width:18px;height:18px;
+      display:flex;align-items:center;justify-content:center;}
+    .notif-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+      z-index:600;align-items:center;justify-content:center;}
+    .notif-overlay.open{display:flex;}
+    .notif-modal{background:#fff;border-radius:14px;padding:20px;width:420px;max-width:92vw;
+      max-height:75vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.22);}
+    .notif-modal h3{font-size:1rem;margin-bottom:12px;border-bottom:2px solid #e2e8f0;padding-bottom:8px;
+      display:flex;justify-content:space-between;align-items:center;}
+    .notif-item{padding:10px;border-radius:8px;background:#f7fafc;margin-bottom:8px;
+      border-left:3px solid #2b6cb0;font-size:.85rem;}
+    .notif-item.in-confirmed{border-left-color:#dd6b20;background:#fffaf0;}
+    .notif-item-date{font-weight:700;color:#2b6cb0;}
+    .notif-item.in-confirmed .notif-item-date{color:#dd6b20;}
+    .notif-item-time{font-size:.72rem;color:#a0aec0;float:right;}
+    .notif-item-desc{margin-top:4px;color:#4a5568;}
+    .notif-empty{text-align:center;color:#a0aec0;padding:30px 0;font-size:.88rem;}
+    .notif-clear-btn{font-size:.75rem;color:#718096;background:none;border:none;cursor:pointer;text-decoration:underline;}
+
+    .review-status{text-align:center;padding:6px;font-size:.78rem;background:#e6fffa;color:#234e52;border-bottom:1px solid #b2f5ea;display:none;}
+    .confirm-status{text-align:center;padding:6px;font-size:.78rem;background:#fffaf0;color:#9c4221;border-bottom:1px solid #fbd38d;display:none;}
+    .unconfirmed-tag{position:absolute;top:2px;right:2px;font-size:.6rem;background:#fff5f5;color:#e53e3e;padding:1px 4px;border-radius:3px;font-weight:700;}
+    .changed-tag{position:absolute;top:2px;right:2px;font-size:.6rem;background:#fffaf0;color:#dd6b20;padding:1px 4px;border-radius:3px;font-weight:700;border:1px solid #f6ad55;}
   </style>
 </head>
 <body>
 <div class="pin-overlay" id="pinOverlay">
   <div class="pin-box">
     <h2>📅 NGP근무달력</h2>
-    <p>팀을 선택하세요</p>
+    <p id="pinBoxDesc">팀을 선택하세요</p>
     <div class="team-select-wrap" id="teamSelectWrap"></div>
-    <div class="pin-input-section" id="pinInputSection">
+
+    <!-- ★ 역할 선택 (관리자/작업계획담당자/게스트) -->
+    <div class="role-select-wrap" id="roleSelectWrap" style="display:none;">
       <button class="back-btn" onclick="backToTeamSelect()">← 팀 선택으로 돌아가기</button>
+      <button class="role-btn" onclick="goAdminPin()">👑 관리자</button>
+      <button class="role-btn" onclick="enterViewOnly()">👁️ 게스트 (열람만)</button>
+    </div>
+
+    <!-- 기존 관리자 PIN 입력 섹션 (그대로 유지) -->
+    <div class="pin-input-section" id="pinInputSection">
+      <button class="back-btn" onclick="backToRoleSelect()">← 뒤로</button>
       <div class="pin-input-wrap">
         <div class="pin-title" id="pinTitle">🔑 관리자 PIN 입력</div>
         <div class="pin-dots" id="pinDots">
@@ -275,14 +321,41 @@
         </div>
         <div class="pin-error" id="pinError"></div>
       </div>
-      <div class="pin-divider"></div>
-      <button class="guest-btn" onclick="enterViewOnly()">
-        👁️ 게스트로 열람만 하기
-        <div style="font-size:.75rem;font-weight:400;margin-top:2px;color:#a0aec0;">달력 열람 및 통계 확인 가능</div>
-      </button>
+    </div>
+
+    <div class="pin-divider" id="guestDividerWrap" style="display:none;"></div>
+    <button class="guest-btn" id="guestBtnDirect" style="display:none;" onclick="enterViewOnly()">
+      👁️ 게스트로 열람만 하기
+      <div style="font-size:.75rem;font-weight:400;margin-top:2px;color:#a0aec0;">달력 열람 및 통계 확인 가능</div>
+    </button>
+  </div>
+</div>
+
+<!-- ★ 작업계획담당자 PIN 로그인 모달 (전체 공통 1개) -->
+<div class="modal-overlay" id="plannerLoginOverlay" style="z-index:1000;">
+  <div class="modal" style="width:320px;">
+    <h3>📋 작업계획담당자 로그인</h3>
+    <input type="password" id="plannerLoginPinInput" maxlength="4" placeholder="PIN 입력"
+      style="width:100%;padding:10px;border:1px solid #cbd5e0;border-radius:8px;font-size:1rem;text-align:center;margin-bottom:10px;">
+    <div class="pin-error" id="plannerLoginPinError"></div>
+    <div class="modal-btns">
+      <button class="cancel-btn" onclick="closePlannerLogin()">취소</button>
+      <button class="ok-btn" onclick="checkPlannerLoginPin()">확인</button>
     </div>
   </div>
 </div>
+
+<!-- ★ 작업계획담당자 - 팀 선택 모달 (로그인 성공 후, A안: 팀 목록에서 자유 선택) -->
+<div class="modal-overlay" id="plannerTeamSelectOverlay" style="z-index:1000;">
+  <div class="modal" style="width:360px;">
+    <h3>📋 열람할 팀을 선택하세요</h3>
+    <div id="plannerTeamList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <div class="modal-btns">
+      <button class="cancel-btn" onclick="plannerLogout()">로그아웃</button>
+    </div>
+  </div>
+</div>
+
 <!-- 마스터 로그인 모달 -->
 <div class="modal-overlay" id="masterLoginOverlay" style="z-index:1000;">
   <div class="modal" style="width:320px;">
@@ -296,6 +369,7 @@
     </div>
   </div>
 </div>
+
 <!-- 마스터 관리 패널 -->
 <div class="modal-overlay" id="masterPanelOverlay" style="z-index:1000;">
   <div class="modal" style="width:480px;">
@@ -320,11 +394,21 @@
         <button class="btn btn-gray" onclick="changeMasterPin()">변경</button>
       </div>
     </div>
+    <!-- ★ 작업계획담당자 PIN 변경 (마스터 관리자 전용) -->
+    <div class="modal-section">
+      <h4>📋 작업계획담당자 PIN 변경 (전체 공통)</h4>
+      <div style="display:flex;gap:8px;">
+        <input type="password" id="newPlannerPin" maxlength="4" placeholder="새 PIN(4자리)"
+          style="flex:1;padding:8px;border:1px solid #cbd5e0;border-radius:6px;">
+        <button class="btn btn-gray" onclick="changePlannerPin()">변경</button>
+      </div>
+    </div>
     <div class="modal-btns">
       <button class="cancel-btn" onclick="closeMasterPanel()">닫기</button>
     </div>
   </div>
 </div>
+
 <header>
   <h1 id="headerTitle">📅 NGP근무달력</h1>
   <p>🔘 휴무 · ⭐ 특근 · ✅ 정상근무 | 실시간 동기화</p>
@@ -332,12 +416,25 @@
 <div class="user-bar" id="userBar">
   <span id="userBarText">🔐 로그인 중...</span>
   <div style="display:flex;gap:8px;align-items:center;">
+    <!-- ★ 알림벨 -->
+    <button class="notif-bell" onclick="openNotifPanel()">
+      🔔
+      <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+    </button>
+    <!-- ★ 작업계획담당자용 "다른 팀 보기" 버튼 (관리자/게스트에는 숨김) -->
+    <button class="logout-btn" id="switchTeamBtn" style="display:none;" onclick="openPlannerTeamSelect()">🔄 다른 팀 보기</button>
     <button class="logout-btn" onclick="openStats()">📊 통계</button>
     <button class="logout-btn" onclick="logout()">🔒 로그아웃</button>
   </div>
 </div>
 <div class="sync-status" id="syncStatus">🔄 연결 중...</div>
 <div class="holiday-status" id="holidayStatus">🔄 공휴일 정보 로딩 중...</div>
+
+<!-- ★ 확정구간 상태 표시 (전체 사용자 공통으로 보임) -->
+<div class="confirm-status" id="confirmStatus"></div>
+<!-- ★ 작업계획담당자 검토 현황 (관리자만 보임) -->
+<div class="review-status" id="reviewStatus"></div>
+
 <div class="member-config" id="memberConfig">
   <label style="font-weight:700;color:#2b6cb0;">👑 팀원 관리</label>
   <div class="member-list-wrap" id="memberListWrap"></div>
@@ -349,14 +446,23 @@
   </div>
   <button class="btn btn-blue" onclick="applyConfig()">✅ 적용</button>
 </div>
+
 <div class="controls" id="adminControls" style="display:none;">
   <button class="btn btn-green" onclick="openStats()">📊 통계</button>
   <button class="btn btn-gray" onclick="window.print()">🖨️ 인쇄</button>
+  <button class="btn btn-blue" onclick="setConfirmedDate()">✅ 확정일 지정</button>
 </div>
 <div class="controls" id="guestControls" style="display:none;">
   <button class="btn btn-green" onclick="openStats()">📊 통계</button>
   <button class="btn btn-gray" onclick="window.print()">🖨️ 인쇄</button>
 </div>
+<!-- ★ 작업계획담당자용 컨트롤 -->
+<div class="controls" id="plannerControls" style="display:none;">
+  <button class="btn btn-green" onclick="openStats()">📊 통계</button>
+  <button class="btn btn-gray" onclick="window.print()">🖨️ 인쇄</button>
+  <button class="btn btn-blue" onclick="markReviewed()">✅ 이 근무표 검토 완료</button>
+</div>
+
 <div class="nav">
   <button onclick="prevMonth()">◀</button>
   <select id="yearSel" onchange="onNavChange()"></select>
@@ -386,8 +492,11 @@
   <div class="legend-item"><div class="legend-box" style="background:#ffebee;"></div>단체연차</div>
   <div class="legend-item"><div class="legend-box" style="background:#c6f6d5;border-color:#9ae6b4;"></div>교육</div>
   <div class="legend-item"><div class="legend-box" style="background:#d1fae5;border-color:#6ee7b7;"></div>출산휴가</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fff5f5;border-color:#e53e3e;"></div>미확정</div>
+  <div class="legend-item"><div class="legend-box" style="background:#fffaf0;border-color:#f6ad55;"></div>확정 후 변경됨</div>
   <div class="legend-item">📌 메모</div>
 </div>
+
 <div class="memo-modal-overlay" id="memoModalOverlay">
   <div class="memo-modal">
     <div class="memo-modal-header">
@@ -455,6 +564,21 @@
   </div>
 </div>
 <div class="edit-locked" id="editLocked">🔒 관리자 로그인 후 수정 가능합니다</div>
+
+<!-- ★ 알림 패널 -->
+<div class="notif-overlay" id="notifOverlay">
+  <div class="notif-modal">
+    <h3>
+      🔔 최근 변경사항
+      <button class="notif-clear-btn" onclick="clearNotifLog()">전체 지우기</button>
+    </h3>
+    <div id="notifList"></div>
+    <div class="modal-btns" style="margin-top:12px;">
+      <button class="cancel-btn" onclick="closeNotifPanel()">닫기</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyCFPFlJz-0uwHyvM9-suzF3OSEzxceXLaA",
@@ -467,6 +591,7 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
+
 let TEAMS = {};
 let currentTeamKey=null, currentDbPath=null, dbListener=null;
 let ADMIN_PIN='1234';
@@ -495,15 +620,24 @@ const BADGE_LABEL={
 const SHIFT_ORDER={am:0,pm:1,night:2};
 const SHIFT_LABEL_MAP={am:'오전',pm:'오후',night:'야간'};
 const ROW_CLS={am:'row-am',pm:'row-pm',night:'row-night'};
-let isAdmin=false, isViewOnly=false, pinValue='';
+
+let isAdmin=false, isViewOnly=false, isPlanner=false, pinValue='';
 let currentYear=new Date().getFullYear(), currentMonth=new Date().getMonth(), currentWeek=0;
 let members=['팀원1','팀원2','팀원3'];
 let overrides={}, modalKey=null, modalDate=null, currentDayType='normal';
 let popupKey=null, popupDate=null;
+
+// ★ 신규 전역 변수
+let confirmedUntil=null, confirmedAt=null, reviewLog=null, changeLog={};
+let PLANNER_PIN='5678'; // 작업계획담당자 전체 공통 PIN (초기 기본값)
+const PLANNER_PIN_REF='plannerPin';
+
 function isMobile(){ return window.innerWidth<=768; }
+
 let MASTER_PIN='9999';
 const MASTER_PIN_REF='masterPin';
 const TEAMS_REGISTRY_REF='teamsRegistry';
+
 function loadTeamsRegistry(){
   return db.ref(TEAMS_REGISTRY_REF).once('value').then(snap=>{
     const data=snap.val();
@@ -516,6 +650,7 @@ function loadTeamsRegistry(){
     renderTeamButtons();
   });
 }
+
 function renderTeamButtons(){
   const wrap=document.getElementById('teamSelectWrap');
   wrap.innerHTML='';
@@ -526,6 +661,14 @@ function renderTeamButtons(){
     btn.onclick=()=>selectTeam(key,team.name);
     wrap.appendChild(btn);
   });
+  // ★ 작업계획담당자 로그인 버튼 (팀 목록과 별도, 마스터 버튼처럼 전체 공통)
+  const plannerBtn=document.createElement('button');
+  plannerBtn.className='team-btn';
+  plannerBtn.style.cssText='border-style:dashed;color:#2c7a7b;background:#f0fffa;';
+  plannerBtn.textContent='📋 작업계획담당자';
+  plannerBtn.onclick=openPlannerLogin;
+  wrap.appendChild(plannerBtn);
+
   const masterBtn=document.createElement('button');
   masterBtn.className='team-btn';
   masterBtn.style.cssText='border-style:dashed;color:#718096;background:#f7fafc;';
@@ -533,6 +676,8 @@ function renderTeamButtons(){
   masterBtn.onclick=openMasterLogin;
   wrap.appendChild(masterBtn);
 }
+
+/* ===== 마스터 관리자 ===== */
 function openMasterLogin(){
   document.getElementById('masterPinInput').value='';
   document.getElementById('masterPinError').textContent='';
@@ -555,6 +700,9 @@ function checkMasterPin(){
 }
 function openMasterPanel(){
   renderMasterTeamList();
+  db.ref(PLANNER_PIN_REF).once('value').then(snap=>{
+    if(snap.val()) PLANNER_PIN=snap.val();
+  });
   document.getElementById('masterPanelOverlay').classList.add('open');
 }
 function closeMasterPanel(){
@@ -610,24 +758,48 @@ function changeMasterPin(){
   document.getElementById('newMasterPin').value='';
   alert('✅ 마스터 PIN이 변경되었습니다!');
 }
+// ★ 작업계획담당자 PIN 변경 (마스터 관리자 전용)
+function changePlannerPin(){
+  const val=document.getElementById('newPlannerPin').value.trim();
+  if(val.length!==4||!/^\d{4}$/.test(val)){
+    alert('PIN은 숫자 4자리여야 합니다!'); return;
+  }
+  PLANNER_PIN=val;
+  db.ref(PLANNER_PIN_REF).set(val);
+  document.getElementById('newPlannerPin').value='';
+  alert('✅ 작업계획담당자 PIN이 변경되었습니다! (전체 공통)');
+}
+
+/* ===== 역할 선택 흐름 ===== */
 function selectTeam(teamKey,teamName){
   currentTeamKey=teamKey;
   currentDbPath=TEAMS[teamKey].dbPath;
   document.getElementById('teamSelectWrap').style.display='none';
-  document.getElementById('pinInputSection').classList.add('show');
-  document.getElementById('pinTitle').textContent = `🔑 ${teamName} 관리자 PIN`;
-  document.querySelector('.pin-box p').textContent=teamName;
+  document.getElementById('roleSelectWrap').style.display='flex';
+  document.getElementById('pinBoxDesc').textContent=teamName;
   db.ref(`${currentDbPath}/adminPin`).once('value',snap=>{
     ADMIN_PIN=snap.val()||'1234';
   });
+}
+function goAdminPin(){
+  document.getElementById('roleSelectWrap').style.display='none';
+  document.getElementById('pinInputSection').classList.add('show');
+  document.getElementById('pinTitle').textContent = `🔑 관리자 PIN 입력`;
+}
+function backToRoleSelect(){
+  document.getElementById('pinInputSection').classList.remove('show');
+  document.getElementById('roleSelectWrap').style.display='flex';
+  pinValue=''; updatePinDots();
+  document.getElementById('pinError').textContent='';
 }
 function backToTeamSelect(){
   currentTeamKey=null; currentDbPath=null;
   pinValue=''; updatePinDots();
   document.getElementById('pinError').textContent='';
   document.getElementById('teamSelectWrap').style.display='flex';
+  document.getElementById('roleSelectWrap').style.display='none';
   document.getElementById('pinInputSection').classList.remove('show');
-  document.querySelector('.pin-box p').textContent='팀을 선택하세요';
+  document.getElementById('pinBoxDesc').textContent='팀을 선택하세요';
 }
 function pinInput(num){
   if(!currentTeamKey){ alert('팀을 먼저 선택해주세요!'); return; }
@@ -643,7 +815,7 @@ function updatePinDots(){
 }
 function checkPin(){
   if(pinValue===ADMIN_PIN){
-    isAdmin=true; isViewOnly=false;
+    isAdmin=true; isViewOnly=false; isPlanner=false;
     document.getElementById('pinOverlay').classList.add('hidden');
     document.getElementById('userBar').className='user-bar';
     const team=TEAMS[currentTeamKey];
@@ -660,7 +832,7 @@ function checkPin(){
 }
 function enterViewOnly(){
   if(!currentTeamKey){ alert('팀을 먼저 선택해주세요!'); return; }
-  isAdmin=false; isViewOnly=true;
+  isAdmin=false; isViewOnly=true; isPlanner=false;
   document.getElementById('pinOverlay').classList.add('hidden');
   document.getElementById('userBar').className='user-bar view-only';
   const team=TEAMS[currentTeamKey];
@@ -671,18 +843,78 @@ function enterViewOnly(){
   sessionStorage.setItem('ngpRole','guest');
   initFirebaseTeam();
 }
+
+/* ===== ★ 작업계획담당자 (전체 공통 PIN, A안: 로그인 후 팀 자유선택) ===== */
+function openPlannerLogin(){
+  document.getElementById('plannerLoginPinInput').value='';
+  document.getElementById('plannerLoginPinError').textContent='';
+  db.ref(PLANNER_PIN_REF).once('value').then(snap=>{
+    if(snap.val()) PLANNER_PIN=snap.val();
+  });
+  document.getElementById('plannerLoginOverlay').classList.add('open');
+}
+function closePlannerLogin(){
+  document.getElementById('plannerLoginOverlay').classList.remove('open');
+}
+function checkPlannerLoginPin(){
+  const val=document.getElementById('plannerLoginPinInput').value.trim();
+  if(val===PLANNER_PIN){
+    closePlannerLogin();
+    isAdmin=false; isViewOnly=false; isPlanner=true;
+    sessionStorage.setItem('ngpRole','planner');
+    openPlannerTeamSelect();
+  } else {
+    document.getElementById('plannerLoginPinError').textContent='❌ PIN이 틀렸습니다.';
+  }
+}
+function openPlannerTeamSelect(){
+  const wrap=document.getElementById('plannerTeamList');
+  wrap.innerHTML='';
+  Object.entries(TEAMS).forEach(([key,team])=>{
+    const btn=document.createElement('button');
+    btn.className='team-btn';
+    btn.textContent=team.name;
+    btn.onclick=()=>selectTeamAsPlanner(key,team.name);
+    wrap.appendChild(btn);
+  });
+  document.getElementById('plannerTeamSelectOverlay').classList.add('open');
+}
+function selectTeamAsPlanner(teamKey,teamName){
+  currentTeamKey=teamKey;
+  currentDbPath=TEAMS[teamKey].dbPath;
+  document.getElementById('plannerTeamSelectOverlay').classList.remove('open');
+  document.getElementById('pinOverlay').classList.add('hidden');
+  document.getElementById('userBar').className='user-bar planner';
+  document.getElementById('userBarText').textContent = `📋 ${teamName} | 작업계획담당자`;
+  document.getElementById('headerTitle').textContent = `📅 ${teamName} 근무달력`;
+  showPlannerUI();
+  sessionStorage.setItem('ngpTeam',currentTeamKey);
+  sessionStorage.setItem('ngpRole','planner');
+  initFirebaseTeam();
+}
+function plannerLogout(){
+  document.getElementById('plannerTeamSelectOverlay').classList.remove('open');
+  isPlanner=false;
+  sessionStorage.removeItem('ngpRole');
+}
+
 function logout(){
   if(dbListener&&currentDbPath){
     db.ref(currentDbPath).off('value',dbListener);
     dbListener=null;
   }
-  isAdmin=false; isViewOnly=false; pinValue='';
+  isAdmin=false; isViewOnly=false; isPlanner=false; pinValue='';
   currentTeamKey=null; currentDbPath=null;
   members=['팀원1','팀원2','팀원3']; overrides={};
+  confirmedUntil=null; confirmedAt=null; reviewLog=null; changeLog={};
   sessionStorage.removeItem('ngpRole'); sessionStorage.removeItem('ngpTeam');
   document.getElementById('memberConfig').classList.remove('show');
   document.getElementById('adminControls').style.display='none';
   document.getElementById('guestControls').style.display='none';
+  document.getElementById('plannerControls').style.display='none';
+  document.getElementById('switchTeamBtn').style.display='none';
+  document.getElementById('reviewStatus').style.display='none';
+  document.getElementById('confirmStatus').style.display='none';
   document.getElementById('pinError').textContent='';
   document.getElementById('headerTitle').textContent='📅 근무달력';
   document.getElementById('calBody').innerHTML='';
@@ -691,16 +923,29 @@ function logout(){
   document.getElementById('teamSelectWrap').style.display='flex';
   document.getElementById('pinOverlay').classList.remove('hidden');
 }
+
 function showAdminUI(){
   document.getElementById('memberConfig').classList.add('show');
   document.getElementById('adminControls').style.display='flex';
   document.getElementById('guestControls').style.display='none';
+  document.getElementById('plannerControls').style.display='none';
+  document.getElementById('switchTeamBtn').style.display='none';
 }
 function showGuestUI(){
   document.getElementById('memberConfig').classList.remove('show');
   document.getElementById('adminControls').style.display='none';
   document.getElementById('guestControls').style.display='flex';
+  document.getElementById('plannerControls').style.display='none';
+  document.getElementById('switchTeamBtn').style.display='none';
 }
+function showPlannerUI(){
+  document.getElementById('memberConfig').classList.remove('show');
+  document.getElementById('adminControls').style.display='none';
+  document.getElementById('guestControls').style.display='none';
+  document.getElementById('plannerControls').style.display='flex';
+  document.getElementById('switchTeamBtn').style.display='inline-block';
+}
+
 function saveAdminPin(){
   const newPin=document.getElementById('adminPinInput').value.trim();
   if(newPin.length!==4||!/^\d{4}$/.test(newPin)){ alert('PIN은 숫자 4자리여야 합니다!'); return; }
@@ -742,6 +987,7 @@ const HOLIDAY_FALLBACK={
   2030:{'2030-01-01':'신정','2030-02-11':'설날 전날','2030-02-12':'설날','2030-02-13':'설날 다음날','2030-03-01':'삼일절','2030-05-05':'어린이날','2030-05-09':'부처님 오신 날','2030-06-06':'현충일','2030-08-15':'광복절','2030-09-20':'추석 전날','2030-09-21':'추석','2030-09-22':'추석 다음날','2030-09-23':'대체공휴일','2030-10-03':'개천절','2030-10-09':'한글날','2030-12-25':'크리스마스'},
 };
 const API_KEY='c85d2288a6dcdf17c9027f3b5ff271300b972044a6036f5ec99ba42d65acbe8d';
+
 async function fetchHolidays(year){
   if(holidayCache[year]) return holidayCache[year];
   const statusEl=document.getElementById('holidayStatus');
@@ -776,6 +1022,8 @@ function getHoliday(key){
   const year=parseInt(key.substring(0,4));
   return (holidayCache[year]||HOLIDAY_FALLBACK[year]||{})[key];
 }
+
+/* ===== Firebase 동기화 ===== */
 function initFirebaseTeam(){
   if(!currentDbPath) return;
   const syncEl=document.getElementById('syncStatus');
@@ -789,10 +1037,19 @@ function initFirebaseTeam(){
     overrides=data.overrides||{};
     if(data.members) members=data.members;
     if(data.adminPin) ADMIN_PIN=data.adminPin;
+    confirmedUntil = data.confirmedUntil || null;
+    confirmedAt = data.confirmedAt || null;
+    reviewLog = data.reviewLog || null;
+    changeLog = data.changeLog || {};
     syncEl.textContent='✅ 동기화 완료! '+new Date().toLocaleTimeString('ko-KR');
     syncEl.className='sync-status';
-    if(isAdmin) renderMemberConfig();
+    if(isAdmin){
+      renderMemberConfig();
+      renderReviewStatus();
+    }
+    renderConfirmStatus();
     renderCalendar();
+    updateNotifBadge();
   };
   db.ref(currentDbPath).on('value',dbListener);
 }
@@ -805,6 +1062,108 @@ function saveToFirebase(){
     lastUpdated:new Date().toISOString()
   });
 }
+
+/* ===== ★ 확정일 지정 (관리자) ===== */
+function setConfirmedDate(){
+  const input = prompt('근무표를 확정한 마지막 날짜를 입력하세요 (예: 2026-11-15)', confirmedUntil || toKey(new Date()));
+  if(!input) return;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(input)){
+    alert('날짜 형식이 올바르지 않습니다! (YYYY-MM-DD)');
+    return;
+  }
+  confirmedUntil = input;
+  confirmedAt = Date.now();
+  db.ref(currentDbPath).update({ confirmedUntil, confirmedAt }).then(()=>{
+    alert(`✅ ${input} 까지 확정 완료로 표시됩니다.\n이후 해당 날짜를 수정하면 "확정 후 변경됨" 표시가 자동으로 붙습니다.`);
+    renderConfirmStatus();
+    renderCalendar();
+  });
+}
+function renderConfirmStatus(){
+  const el = document.getElementById('confirmStatus');
+  if(!confirmedUntil){ el.style.display='none'; return; }
+  el.textContent = `✅ ${confirmedUntil} 까지 근무표 확정 완료`;
+  el.style.display='block';
+}
+
+/* ===== ★ 작업계획담당자 검토 완료 ===== */
+function markReviewed(){
+  if(!currentDbPath) return;
+  const logData = { reviewedAt: Date.now(), reviewedUntil: confirmedUntil || null };
+  db.ref(`${currentDbPath}/reviewLog`).set(logData).then(()=>{
+    alert('✅ 검토 완료로 기록되었습니다. 관리자가 확인할 수 있습니다.');
+  });
+}
+function renderReviewStatus(){
+  const el = document.getElementById('reviewStatus');
+  if(!reviewLog){ el.style.display='none'; return; }
+  const dt = new Date(reviewLog.reviewedAt);
+  const dtStr = dt.toLocaleString('ko-KR');
+  const untilStr = reviewLog.reviewedUntil ? ` (확정구간: ${reviewLog.reviewedUntil}까지)` : '';
+  el.textContent = `📋 작업계획담당자 최근 검토: ${dtStr}${untilStr}`;
+  el.style.display='block';
+}
+
+/* ===== ★ 변경 알림 로그 ===== */
+function pushChangeLog(dateKey, desc){
+  const logId = 'log_' + Date.now();
+  const entry = { date: dateKey, desc: desc, at: Date.now() };
+  db.ref(`${currentDbPath}/changeLog/${logId}`).set(entry);
+}
+function getLastSeenTime(){
+  return parseInt(localStorage.getItem('ngpLastSeen_'+currentDbPath) || '0');
+}
+function setLastSeenNow(){
+  localStorage.setItem('ngpLastSeen_'+currentDbPath, Date.now().toString());
+}
+function updateNotifBadge(){
+  const lastSeen = getLastSeenTime();
+  const unseenCount = Object.values(changeLog).filter(e=>e.at > lastSeen).length;
+  const badge = document.getElementById('notifBadge');
+  if(unseenCount>0){
+    badge.textContent = unseenCount>99?'99+':unseenCount;
+    badge.style.display='flex';
+  } else {
+    badge.style.display='none';
+  }
+}
+function openNotifPanel(){
+  if(!currentDbPath){ alert('팀을 먼저 선택해주세요!'); return; }
+  const list = document.getElementById('notifList');
+  const entries = Object.values(changeLog).sort((a,b)=>b.at-a.at);
+  if(entries.length===0){
+    list.innerHTML = '<div class="notif-empty">📭 변경 내역이 없습니다</div>';
+  } else {
+    list.innerHTML = entries.slice(0,50).map(e=>{
+      const inConfirmed = confirmedUntil && e.date <= confirmedUntil;
+      const dateObj = new Date(e.date.replace(/-/g,'/'));
+      const dateLabel = `${dateObj.getMonth()+1}/${dateObj.getDate()}`;
+      const timeStr = new Date(e.at).toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+      return `<div class="notif-item ${inConfirmed?'in-confirmed':''}">
+        <span class="notif-item-date">${dateLabel}${inConfirmed?' ⚠️확정구간':''}</span>
+        <span class="notif-item-time">${timeStr}</span>
+        <div class="notif-item-desc">${e.desc}</div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('notifOverlay').classList.add('open');
+  setLastSeenNow();
+  updateNotifBadge();
+}
+function closeNotifPanel(){
+  document.getElementById('notifOverlay').classList.remove('open');
+}
+function clearNotifLog(){
+  if(!confirm('모든 변경 알림 기록을 삭제하시겠습니까?')) return;
+  db.ref(`${currentDbPath}/changeLog`).remove().then(()=>{
+    document.getElementById('notifList').innerHTML = '<div class="notif-empty">📭 변경 내역이 없습니다</div>';
+  });
+}
+document.getElementById('notifOverlay').addEventListener('click',function(e){
+  if(e.target===this) closeNotifPanel();
+});
+
+/* ===== 네비게이션 ===== */
 function initNavSelectors(){
   const ySel=document.getElementById('yearSel'); ySel.innerHTML='';
   for(let y=2026;y<=2050;y++){
@@ -873,6 +1232,8 @@ function isHolidayDate(date){
   const dow=date.getDay(), key=toKey(date);
   return dow===0||dow===6||!!getHoliday(key);
 }
+
+/* ===== 시간 계산 (0.5시간 단위) ===== */
 function calcHours(startH, endH){
   const s=Math.round(startH*2);
   const e=Math.round(endH*2);
@@ -883,11 +1244,7 @@ function calcHours(startH, endH){
     if(hourOfDay>=22||hourOfDay<6) nightUnits++;
     else dayUnits++;
   }
-  return{
-    dayH:dayUnits/2,
-    nightH:nightUnits/2,
-    totalH:(eAdj-s)/2
-  };
+  return{ dayH:dayUnits/2, nightH:nightUnits/2, totalH:(eAdj-s)/2 };
 }
 function calcWeekdayPay(startH,endH){
   const{nightH,totalH}=calcHours(startH,endH);
@@ -913,6 +1270,8 @@ function fmtTime(h){
   if(isNext) str+='(익일)';
   return str;
 }
+
+/* ===== 모바일 상세 팝업 ===== */
 function openShiftPopup(key,date,dayType,ov){
   popupKey=key; popupDate=date;
   const dateLabel = `${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`;
@@ -994,6 +1353,8 @@ function goToEdit(){
 document.getElementById('shiftPopupOverlay').addEventListener('click',function(e){
   if(e.target===this) closeShiftPopup();
 });
+
+/* ===== 달력 셀 렌더링 ===== */
 function renderCellContent(td,dayType,ov){
   if(dayType==='off'){
     const ol=document.createElement('div'); ol.className='off-label'; ol.textContent='🔘 휴무';
@@ -1038,6 +1399,7 @@ function renderCellContent(td,dayType,ov){
     td.appendChild(ea);
   }
 }
+
 function renderCalendar(){
   const tbody=document.getElementById('calBody'); tbody.innerHTML='';
   const firstDay=new Date(currentYear,currentMonth,1).getDay();
@@ -1099,6 +1461,25 @@ function renderCalendar(){
         td.appendChild(hl);
       }
       if(!td.classList.contains('other-month')) renderCellContent(td,dayType,ov);
+
+      /* ★ 확정일 / 확정 후 변경 표시 (게스트·작업계획담당자도 보임) */
+      if(isCurrent && confirmedUntil){
+        if(key > confirmedUntil){
+          td.style.position='relative';
+          const tag=document.createElement('div');
+          tag.className='unconfirmed-tag';
+          tag.textContent='미확정';
+          td.appendChild(tag);
+          td.style.opacity='0.6';
+        } else if(ov && ov.modifiedAt && confirmedAt && ov.modifiedAt > confirmedAt){
+          td.style.position='relative';
+          const tag=document.createElement('div');
+          tag.className='changed-tag';
+          tag.textContent='⚠️ 변경됨';
+          td.appendChild(tag);
+        }
+      }
+
       if(isCurrent){
         td.addEventListener('click',()=>{
           if(isMobile()){
@@ -1120,6 +1501,7 @@ function renderCalendar(){
     if(row>=4&&!rhc) break;
   }
 }
+
 function openMemoModal(memo,dateLabel){
   document.getElementById('memoModalDate').textContent=dateLabel||'';
   document.getElementById('memoModalBody').textContent=memo;
@@ -1129,7 +1511,10 @@ function closeMemoModal(){ document.getElementById('memoModalOverlay').classList
 document.getElementById('memoModalOverlay').addEventListener('click',function(e){
   if(e.target===this) closeMemoModal();
 });
+
+/* ===== 통계 ===== */
 function openStats(){
+  if(!currentDbPath){ alert('팀을 먼저 선택해주세요!'); return; }
   const ysel=document.getElementById('statsYearSel'); ysel.innerHTML='';
   for(let y=2026;y<=2050;y++){
     const o=document.createElement('option'); o.value=y; o.textContent=y+'년';
@@ -1139,6 +1524,7 @@ function openStats(){
   document.getElementById('statsOverlay').classList.add('open');
 }
 function closeStats(){ document.getElementById('statsOverlay').classList.remove('open'); }
+
 function renderStats(){
   const year=parseInt(document.getElementById('statsYearSel').value);
   const annualStats={};
@@ -1214,6 +1600,7 @@ function renderStats(){
   window._statsMembers=[...members];
   renderMonthlyTable();
 }
+
 function renderMonthlyTable(){
   const month=parseInt(document.getElementById('statsMonthSel')?.value||currentMonth+1);
   const wrap=document.getElementById('monthlyTableWrap'); if(!wrap) return;
@@ -1242,6 +1629,8 @@ function renderMonthlyTable(){
   </p>`;
   wrap.innerHTML=html;
 }
+
+/* ===== 편집 모달 ===== */
 function selectDayType(type){
   currentDayType=type;
   document.getElementById('btnOff').className='day-type-btn'+(type==='off'?' selected-off':'');
@@ -1250,6 +1639,7 @@ function selectDayType(type){
   document.getElementById('editSection').classList.toggle('show', type!=='off');
   document.getElementById('weekCopyBtn').style.display=type==='off'?'none':'block';
 }
+
 function openModal(key,date){
   modalKey=key; modalDate=date;
   const existing=overrides[key];
@@ -1319,10 +1709,12 @@ function openModal(key,date){
   document.getElementById('memoInput').value=existing?.memo||'';
   document.getElementById('modalOverlay').classList.add('open');
 }
+
 function closeModal(){
   document.getElementById('modalOverlay').classList.remove('open');
   modalKey=null; modalDate=null;
 }
+
 async function applyWeekCopy(){
   if(!modalKey||!modalDate) return;
   const srcData=collectModalData(); if(!srcData) return;
@@ -1340,22 +1732,29 @@ async function applyWeekCopy(){
   if(targets.length===0){ alert('적용할 수 있는 평일이 없습니다!'); return; }
   const hasData=targets.filter(t=>overrides[t.key]);
   const noData=targets.filter(t=>!overrides[t.key]);
+  const applyWithTimestamp=(t)=>{
+    const copy=JSON.parse(JSON.stringify(srcData));
+    copy.modifiedAt=Date.now();
+    overrides[t.key]=copy;
+  };
   if(hasData.length>0){
     const dateList=hasData.map(t=>`${t.date.getMonth()+1}월 ${t.date.getDate()}일`).join(', ');
     const msg = `이미 데이터가 있는 날짜:\n${dateList}\n\n덮어쓰시겠습니까?\n\n[확인] 모두 덮어쓰기\n[취소] 건너뛰기`;
     const overwrite=confirm(msg);
     if(overwrite){
-      targets.forEach(t=>{ overrides[t.key]=JSON.parse(JSON.stringify(srcData)); });
+      targets.forEach(applyWithTimestamp);
     } else {
-      noData.forEach(t=>{ overrides[t.key]=JSON.parse(JSON.stringify(srcData)); });
+      noData.forEach(applyWithTimestamp);
       if(noData.length===0){ alert('건너뛸 날짜만 있어서 적용된 날짜가 없습니다.'); return; }
     }
   } else {
-    targets.forEach(t=>{ overrides[t.key]=JSON.parse(JSON.stringify(srcData)); });
+    targets.forEach(applyWithTimestamp);
   }
   closeModal(); saveToFirebase();
+  pushChangeLog(modalKey, `주차 복사 적용 (${targets.length}일)`);
   alert('✅ 주차 근무가 적용되었습니다!');
 }
+
 function collectModalData(){
   const shifts={};
   members.forEach(name=>{
@@ -1377,21 +1776,48 @@ function collectModalData(){
   const memo=document.getElementById('memoInput').value.trim();
   return {dayType:currentDayType, shifts, events, memo};
 }
+
 function saveDay(){
+  const isConfirmedZone = confirmedUntil && modalKey <= confirmedUntil;
+  if(isConfirmedZone){
+    const proceed = confirm('⚠️ 이 날짜는 이미 "확정 완료"로 표시된 날짜입니다.\n수정하면 "확정 후 변경됨" 표시가 자동으로 붙습니다.\n계속 저장하시겠습니까?');
+    if(!proceed) return;
+  }
+
+  let summary = '';
+
   if(currentDayType==='off'){
     const dt=getDefaultDayType(new Date(modalKey.replace(/-/g,'/')));
-    if(dt==='off'){ delete overrides[modalKey]; }
-    else overrides[modalKey]={dayType:'off',shifts:{},events:{},memo:''};
+    if(dt==='off'){ delete overrides[modalKey]; summary='초기화(기본값 복원)'; }
+    else { overrides[modalKey]={dayType:'off',shifts:{},events:{},memo:'',modifiedAt:Date.now()}; summary='🔘 휴무로 변경'; }
   } else {
     const data=collectModalData();
     const hasData=Object.keys(data.shifts).length>0||Object.keys(data.events).length>0||data.memo;
     const dt=getDefaultDayType(new Date(modalKey.replace(/-/g,'/')));
-    if(!hasData&&currentDayType===dt){ delete overrides[modalKey]; }
-    else overrides[modalKey]=data;
+    if(!hasData&&currentDayType===dt){ delete overrides[modalKey]; summary='초기화(기본값 복원)'; }
+    else {
+      data.modifiedAt = Date.now();
+      overrides[modalKey]=data;
+      const names = Object.entries(data.shifts||{})
+        .filter(([,s])=>s&&s.type&&s.type!=='none')
+        .map(([n,s])=>`${n}(${SHIFT_LABEL_MAP[s.type]})`);
+      const evNames = Object.entries(data.events||{})
+        .filter(([,e])=>e&&e.type&&e.type!=='none')
+        .map(([n,e])=>`${n}(${BADGE_LABEL[e.type]})`);
+      summary = [...names, ...evNames].join(', ') || '근무표 수정';
+    }
   }
+
   closeModal(); saveToFirebase();
+  pushChangeLog(modalKey, summary);
 }
-function resetDay(){ delete overrides[modalKey]; closeModal(); saveToFirebase(); }
+
+function resetDay(){
+  delete overrides[modalKey];
+  closeModal(); saveToFirebase();
+  pushChangeLog(modalKey, '초기화');
+}
+
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('/ngp-schedule/sw.js')
@@ -1399,6 +1825,8 @@ if('serviceWorker' in navigator){
       .catch(err=>console.log('SW error:',err));
   });
 }
+
+/* ===== 초기 실행 (세션 복원) ===== */
 (async()=>{
   initNavSelectors();
   await fetchHolidays(currentYear);
@@ -1419,6 +1847,12 @@ if('serviceWorker' in navigator){
       document.getElementById('userBar').className='user-bar';
       document.getElementById('userBarText').textContent = `👑 ${team.name} | 관리자`;
       showAdminUI();
+    } else if(savedRole==='planner'){
+      isPlanner=true;
+      document.getElementById('pinOverlay').classList.add('hidden');
+      document.getElementById('userBar').className='user-bar planner';
+      document.getElementById('userBarText').textContent = `📋 ${team.name} | 작업계획담당자`;
+      showPlannerUI();
     } else if(savedRole==='guest'){
       isViewOnly=true;
       document.getElementById('pinOverlay').classList.add('hidden');
