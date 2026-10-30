@@ -1663,6 +1663,8 @@ function openModal(key,date){
     container.appendChild(row);
   });
   const evContainer=document.getElementById('eventSlots'); evContainer.innerHTML='';
+  const FULL_DAY_EVENTS = ['off','groupoff','maternity','family','fitness']; // ★ 하루 종일 빠지는 이벤트 목록
+
   members.forEach(name=>{
     const savedEv=existing?.events?.[name];
     const row=document.createElement('div'); row.className='event-slot';
@@ -1680,9 +1682,30 @@ function openModal(key,date){
     tlw.appendChild(tli); tlw.appendChild(tlsp);
     sel.onchange=()=>{
       document.getElementById('tlw_'+name).classList.toggle('show', sel.value==='timeleave');
+
+      // ★ 하루 종일 빠지는 이벤트면 근무를 자동으로 "없음" + 비활성화
+      const shiftSel = document.getElementById('stype_'+name);
+      if(shiftSel){
+        if(FULL_DAY_EVENTS.includes(sel.value)){
+          shiftSel.value='none';
+          shiftSel.disabled=true;
+          document.getElementById('sta_'+name)?.classList.remove('show');
+          document.getElementById('smrow_'+name).className='shift-member-row';
+        } else {
+          shiftSel.disabled=false;
+        }
+      }
     };
     row.appendChild(nm); row.appendChild(sel); row.appendChild(tlw);
     evContainer.appendChild(row);
+
+    // ★ 모달을 열 때, 이미 저장된 이벤트가 하루종일형이면 처음부터 근무를 비활성화 상태로 표시
+    if(savedEv && FULL_DAY_EVENTS.includes(savedEv.type)){
+      setTimeout(()=>{
+        const shiftSel = document.getElementById('stype_'+name);
+        if(shiftSel){ shiftSel.value='none'; shiftSel.disabled=true; }
+      },0);
+    }
   });
   document.getElementById('memoInput').value=existing?.memo||'';
   document.getElementById('modalOverlay').classList.add('open');
