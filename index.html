@@ -244,14 +244,48 @@
       header h1{font-size:1.1rem;}
       header p{font-size:.75rem;}
     }
-    @media print{
-      .controls,.nav button,.member-config,.legend,.modal-overlay,
-      .holiday-status,.user-bar,.sync-status,.pin-overlay,.edit-locked,
-      .stats-overlay,.memo-modal-overlay,.shift-popup-overlay{display:none!important;}
-      body{background:#fff;}
-      .calendar-wrap{padding:4px;}
-      td{height:90px;max-height:none;overflow:visible;}
-    }
+  @media print{
+  @page{ size:landscape; margin:8mm; } /* ★ 인쇄 방향 가로 고정 */
+
+  .controls,.nav button,.member-config,.legend,.modal-overlay,
+  .holiday-status,.user-bar,.sync-status,.pin-overlay,.edit-locked,
+  .stats-overlay,.memo-modal-overlay,.shift-popup-overlay,
+  .notif-bell,#switchTeamBtn{display:none!important;} /* ★ 알림벨/팀전환 버튼도 인쇄시 숨김 */
+
+  body{background:#fff;}
+  .calendar-wrap{padding:0;overflow:visible;}
+  table{min-width:0;width:100%;} /* ★ 가로폭 꽉 채우기 */
+
+  td{
+    height:auto;
+    min-height:100px;
+    max-height:none;
+    overflow:visible;
+    padding:4px;
+  }
+
+  /* ★ 시간 표시 인쇄시 반드시 보이게 */
+  .cell-shift-time{
+    display:inline!important;
+    font-size:.68rem!important;
+    color:#2d3748!important;
+  }
+  .cell-shift-ext{
+    display:inline!important;
+    font-size:.64rem!important;
+  }
+  .cell-shift-name{font-size:.72rem!important;}
+  .cell-shift-label{font-size:.68rem!important;}
+
+  .cell-event-area .badge{
+    font-size:.6rem!important;
+    padding:1px 4px!important;
+  }
+
+  header{padding:8px 16px;}
+  header h1{font-size:1.1rem;}
+  header p{font-size:.72rem;}
+}
 
     /* ===== ★ 신규 추가 스타일 ===== */
     .role-select-wrap{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
