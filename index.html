@@ -245,46 +245,77 @@
       header p{font-size:.75rem;}
     }
   @media print{
-  @page{ size:landscape; margin:8mm; } /* ★ 인쇄 방향 가로 고정 */
+  @page{ size:landscape; margin:6mm; }
 
   .controls,.nav button,.member-config,.legend,.modal-overlay,
   .holiday-status,.user-bar,.sync-status,.pin-overlay,.edit-locked,
   .stats-overlay,.memo-modal-overlay,.shift-popup-overlay,
-  .notif-bell,#switchTeamBtn{display:none!important;} /* ★ 알림벨/팀전환 버튼도 인쇄시 숨김 */
+  .notif-bell,#switchTeamBtn{display:none!important;}
 
   body{background:#fff;}
   .calendar-wrap{padding:0;overflow:visible;}
-  table{min-width:0;width:100%;} /* ★ 가로폭 꽉 채우기 */
 
-  td{
-    height:auto;
-    min-height:100px;
-    max-height:none;
-    overflow:visible;
-    padding:4px;
+  /* ★ 이전/다음 달 완전히 숨김 (인쇄시에만) */
+  .other-month{display:none!important;}
+
+  table{
+    width:100%;
+    min-width:0;
+    table-layout:fixed;
+    border-collapse:collapse;
+    border:2px solid #2d3748!important;
+  }
+  thead th{
+    border:1px solid #2d3748!important;
+    font-size:.78rem;
+    padding:4px 0;
   }
 
-  /* ★ 시간 표시 인쇄시 반드시 보이게 */
+  td{
+    border:1px solid #718096!important; /* ★ 테두리 진하게 */
+    height:auto;
+    min-height:70px;
+    max-height:none;
+    overflow:visible;
+    padding:3px;
+    vertical-align:top;
+  }
+
+  .date-num{font-size:.78rem;margin-bottom:1px;}
+  .holiday-label{font-size:.56rem;}
+  .off-label{font-size:.68rem;height:30px;}
+  .special-tag{font-size:.56rem;padding:0 3px;}
+
+  .cell-shift-row{
+    padding:1px 2px;
+    margin-bottom:1px;
+    border:1px solid rgba(0,0,0,.15);
+  }
+  .cell-shift-label{font-size:.6rem!important;min-width:16px;}
+  .cell-shift-name{font-size:.62rem!important;}
   .cell-shift-time{
     display:inline!important;
-    font-size:.68rem!important;
+    font-size:.58rem!important;
     color:#2d3748!important;
   }
   .cell-shift-ext{
     display:inline!important;
-    font-size:.64rem!important;
+    font-size:.56rem!important;
+    padding:0 2px;
   }
-  .cell-shift-name{font-size:.72rem!important;}
-  .cell-shift-label{font-size:.68rem!important;}
 
+  .cell-event-area{margin-top:1px;padding-top:1px;}
   .cell-event-area .badge{
-    font-size:.6rem!important;
-    padding:1px 4px!important;
+    font-size:.52rem!important;
+    padding:0 3px!important;
+    margin:0 1px;
   }
 
-  header{padding:8px 16px;}
-  header h1{font-size:1.1rem;}
-  header p{font-size:.72rem;}
+  .confirm-tag,.unconfirm-tag{font-size:.5rem!important;padding:0 3px!important;}
+
+  header{padding:4px 12px;}
+  header h1{font-size:1rem;}
+  header p{font-size:.68rem;}
 }
 
     /* ===== ★ 신규 추가 스타일 ===== */
