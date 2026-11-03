@@ -106,13 +106,13 @@
     .off-label{display:flex;align-items:center;justify-content:center;height:55px;font-size:.88rem;color:#a0aec0;font-weight:700;}
     .special-tag{display:inline-block;font-size:.7rem;background:#f6e05e;color:#744210;border-radius:3px;padding:1px 5px;font-weight:700;margin-bottom:2px;}
     .cell-shift-row{display:flex;align-items:center;gap:3px;margin-bottom:2px;font-size:.78rem;line-height:1.3;border-radius:4px;padding:1px 4px;}
-    .cell-shift-row.row-am{background:#dbeafe;}
-    .cell-shift-row.row-pm{background:#dcfce7;}
-    .cell-shift-row.row-night{background:#ede9fe;}
+    .cell-shift-row.row-am   {background:#dcfce7;}  /* 오전 → 초록 */
+    .cell-shift-row.row-pm   {background:#dbeafe;}  /* 오후 → 파랑 */
+    .cell-shift-row.row-night{background:#ffe4e1;}
     .cell-shift-label{font-weight:700;font-size:.72rem;min-width:24px;}
-    .cell-shift-label.am{color:#1d4ed8;}
-    .cell-shift-label.pm{color:#15803d;}
-    .cell-shift-label.night{color:#6d28d9;}
+    .cell-shift-label.am   {color:#15803d;}  /* 오전 → 초록 */
+    .cell-shift-label.pm   {color:#1d4ed8;}  /* 오후 → 파랑 */
+    .cell-shift-label.night{color:#dc2626;}  /* 야간 → 다홍 */
     .cell-shift-name{font-weight:700;color:#1a202c;font-size:.78rem;}
     .cell-shift-time{color:#4a5568;font-size:.7rem;margin-left:2px;}
     .cell-shift-ext{font-size:.68rem;font-weight:700;color:#b45309;margin-left:2px;background:#fef3c7;border-radius:3px;padding:0 3px;}
@@ -144,13 +144,13 @@
     .shift-popup-header h4{font-size:1rem;color:#2b6cb0;font-weight:700;}
     .shift-popup-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:#718096;padding:4px;}
     .shift-popup-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;margin-bottom:6px;}
-    .shift-popup-row.row-am{background:#dbeafe;}
-    .shift-popup-row.row-pm{background:#dcfce7;}
-    .shift-popup-row.row-night{background:#ede9fe;}
+    .shift-popup-row.row-am   {background:#dcfce7;}
+    .shift-popup-row.row-pm   {background:#dbeafe;}
+    .shift-popup-row.row-night{background:#ffe4e1;}
     .shift-popup-label{font-weight:700;font-size:.88rem;min-width:32px;}
-    .shift-popup-label.am{color:#1d4ed8;}
-    .shift-popup-label.pm{color:#15803d;}
-    .shift-popup-label.night{color:#6d28d9;}
+    .shift-popup-label.am   {color:#15803d;}
+    .shift-popup-label.pm   {color:#1d4ed8;}
+    .shift-popup-label.night{color:#dc2626;}
     .shift-popup-name{font-weight:700;font-size:.88rem;color:#1a202c;flex:1;}
     .shift-popup-time{font-size:.82rem;color:#4a5568;}
     .shift-popup-ext{font-size:.78rem;font-weight:700;color:#b45309;background:#fef3c7;border-radius:3px;padding:1px 6px;}
@@ -189,9 +189,9 @@
     .week-copy-btn{width:100%;padding:10px;border:2px dashed #dd6b20;background:#fffaf0;border-radius:8px;cursor:pointer;font-size:.85rem;color:#dd6b20;font-weight:600;margin-bottom:14px;transition:all .15s;}
     .week-copy-btn:hover{background:#feebc8;border-color:#c05621;}
     .shift-member-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:8px 10px;border-radius:8px;background:#f7fafc;border:1px solid #e2e8f0;flex-wrap:wrap;}
-    .shift-member-row.is-am{background:#dbeafe;border-color:#93c5fd;}
-    .shift-member-row.is-pm{background:#dcfce7;border-color:#86efac;}
-    .shift-member-row.is-night{background:#ede9fe;border-color:#c4b5fd;}
+    .shift-member-row.is-am   {background:#dcfce7;border-color:#86efac;}
+    .shift-member-row.is-pm   {background:#dbeafe;border-color:#93c5fd;}
+    .shift-member-row.is-night{background:#ffe4e1;border-color:#fca5a5;}
     .smrow-name{font-weight:700;font-size:.88rem;min-width:48px;color:#2d3748;}
     .smrow-type{padding:5px 6px;border:1px solid #cbd5e0;border-radius:6px;font-size:.85rem;min-width:75px;}
     .smrow-time{display:none;align-items:center;gap:4px;}
@@ -562,9 +562,9 @@
 <div class="legend">
   <div class="legend-item"><div class="legend-box" style="background:#f0f0f0;"></div>휴무</div>
   <div class="legend-item"><div class="legend-box" style="background:#fffde7;border-color:#f6e05e;"></div>특근</div>
-  <div class="legend-item"><div class="legend-box" style="background:#dbeafe;"></div>오전</div>
-  <div class="legend-item"><div class="legend-box" style="background:#dcfce7;"></div>오후</div>
-  <div class="legend-item"><div class="legend-box" style="background:#ede9fe;"></div>야간</div>
+  <div class="legend-item"><div class="legend-box" style="background:#dcfce7;"></div>오전</div>
+  <div class="legend-item"><div class="legend-box" style="background:#dbeafe;"></div>오후</div>
+  <div class="legend-item"><div class="legend-box" style="background:#ffe4e1;"></div>야간</div>
   <div class="legend-item"><div class="legend-box" style="background:#fef3c7;"></div>연장(+h)</div>
   <div class="legend-item"><div class="legend-box" style="background:#fed7d7;"></div>연차</div>
   <div class="legend-item"><div class="legend-box" style="background:#fbd38d;"></div>시간차</div>
